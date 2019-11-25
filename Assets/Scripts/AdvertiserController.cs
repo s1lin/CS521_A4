@@ -25,19 +25,20 @@ public class AdvertiserController: MonoBehaviour {
 
     void Update() {
         for (int i = 0; i < advertiserInstances.Count; i++) {
-            float x = advertiserInstances[i].transform.position.x;
-            if (x > 98f) {
+            int x = advertiserInstances[i].GetComponent<AdvertiserBehaviour>().numOfSales;
+            if (x == 3) {
                 Destroy(advertiserInstances[i]);
                 advertiserInstances.RemoveAt(i);
-                SpawnAdvertiser();
+                //SpawnAdvertiser();
             }
         }
     }
 
     void SpawnAdvertiser() {
         float zIndex = Random.Range(-15f, 15f);
-        Vector3 pos = new Vector3(-99f, 0, zIndex);
-        GameObject shopper = Instantiate(advertiserPrefab, pos, Quaternion.identity, transform);
-        advertiserInstances.Add(shopper);
+        float xIndex = Random.Range(-90f, -45f);
+        Vector3 pos = new Vector3(xIndex, 0, zIndex);
+        GameObject advertiser = Instantiate(advertiserPrefab, pos, Quaternion.identity, transform);
+        advertiserInstances.Add(advertiser);
     }
 }

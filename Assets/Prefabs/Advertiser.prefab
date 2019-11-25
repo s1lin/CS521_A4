@@ -29,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1025655117217532}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -8.2, y: 1, z: 26.1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 1, z: 2}
   m_Children:
   - {fileID: 4777330195900488}
@@ -110,13 +110,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebbe0c4a2717c2f40962a04db2351174, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  flyerPrefab: {fileID: 3571121565967228776, guid: 337f64be638fccb4ab3ccccef2e08ba7,
+    type: 3}
   obstacleDistance: 5
-  maxSpeed: 10
+  maxSpeed: 15
   maxForce: 10
-  maxSeeAhead: 10
   maxAvoidForce: 10
+  observationDist: 20
+  pitchDist: 5
+  advertiseRate: 5
+  advertiseProb: 0.9
   traversing: 0
   shopping: 0
+  numOfSales: 0
 --- !u!54 &54240026340616464
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -9,6 +9,13 @@ public class ShopperBehavior : MonoBehaviour {
         public Vector3 Force { get; set; }
     }
 
+    //flyer:
+    public Material flyered;
+    public Material notFlyered;
+    private GameObject flyer;
+    private float flyeredWait = 2f;
+    public bool flyerAttract = false;
+
     public float obstacleDistance = 8f;
 
     public float maxSpeed = 20.0f;
@@ -22,8 +29,8 @@ public class ShopperBehavior : MonoBehaviour {
     private Vector3 destination;
     private Vector3 desiredVelocity;
     private Vector3 target;
-    private List<Vector3> path;
     private List<Vector3> obstacles;
+    private List<GameObject> flyers;
 
     private List<BehaviorForce> forces = new List<BehaviorForce>();
     private TPSpawn tp;
@@ -31,6 +38,8 @@ public class ShopperBehavior : MonoBehaviour {
 
     public bool traversing = false;
     public bool shopping = false;
+
+    private float time = 0.0f;
 
     void Start() {
         speed = Random.Range(0.17f, maxSpeed);
@@ -55,40 +64,105 @@ public class ShopperBehavior : MonoBehaviour {
     // Update is called once per frame
     void Update() {
 
-        if (traversing) {
-            Seek();
-            Collision();
-            Move();
-        }
+        if (flyerAttract && time < flyeredWait) {
+            velocity = Vector3.zero;
+            transform.GetComponent<Renderer>().material = flyered;
+            if (flyer != null) {
+                transform.position = flyer.transform.position;
+                flyers.Remove(flyer);
+                Destroy(flyer);
+            }
+            if (time < flyeredWait) {
+                time += Time.deltaTime;
+            } else {
+                time = 0;
+                //flyerAttract = false;
+            }
+        } else {
+            if (!flyerAttract) {
+                flyerAttract = CollisionWithFlyer();
+            }
 
-        if (shopping) {
-            if (Vector3.Distance(target, transform.position) > 5f && chair == null) {
+            if (traversing) {
                 Seek();
                 Collision();
                 Move();
-            } else {
-                if (chair == null)
-                    chair = tp.GetEmptyChair();
-                //Not to assign chair twice
-                if (chair != null) {
-                    target = chair.transform.position;
-                    if (Vector3.Distance(target, transform.position) > 5f) {
-                        Seek();
-                        CollisionWithOtherTable(chair.parent);
-                        Move();
-                    } else {
-                        float zIndex = Random.Range(-15f, 15f);
-                        target = new Vector3(99f, 0, zIndex);
-                        traversing = true;
-                        shopping = false;
+            }
+
+            if (shopping) {
+                if (Vector3.Distance(target, transform.position) > 15f && chair == null) {
+                    Seek();
+                    Collision();
+                    Move();
+                } else {
+                    if (chair == null)
+                        chair = tp.GetEmptyChair();
+                    //Not to assign chair twice
+                    if (chair != null) {
+                        target = chair.transform.position;
+                        if (Vector3.Distance(target, transform.position) > 5f) {
+                            Seek();
+                            CollisionWithOtherTable(chair.parent);
+                            Move();
+                        } else {
+                            float zIndex = Random.Range(-15f, 15f);
+                            target = new Vector3(99f, 0, zIndex);
+                            traversing = true;
+                            shopping = false;
+                        }
                     }
                 }
+
             }
         }
     }
 
-    void CollisionWithOtherTable(int tableNum) {
+    bool CollisionWithFlyer() {
+        flyers = new List<GameObject>();
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Flyer")) {
+            flyers.Add(g);
+        }
+               
+        if (flyers.Count == 0)
+            return false;
 
+        flyer = flyers.Find(e => Vector3.Distance(e.transform.position, transform.position) < 2f);
+
+        return flyer != null;
+    }
+
+    void CollisionWithOtherTable(int tableNum) {
+        Vector3 calcForce = Vector3.zero;
+        for (int i = 2; i < tp.wallPosition.Count; i++) {
+
+            float obRadius = 5f;
+            float agentRadius = 5f;
+
+            Vector3 vecToCenter = tp.wallPosition[i] - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, tp.wallPosition[i], Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+
+        if (calcForce.magnitude > 0)
+            AddForce(2.0f, calcForce);
     }
 
     void Seek() {

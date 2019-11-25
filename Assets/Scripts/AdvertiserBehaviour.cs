@@ -9,19 +9,25 @@ public class AdvertiserBehaviour : MonoBehaviour {
         public Vector3 Force { get; set; }
     }
 
+    public GameObject flyerPrefab;
+
+    private List<GameObject> flyerInstances;
+    private ShopperBehavior shopperBehavior;
+
     public float obstacleDistance = 8f;
 
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
-    public float maxSeeAhead = 20f;
     public float maxAvoidForce = 10.0f;
 
-    private float speed;
-    private Vector3 steering;
+    public float observationDist = 25.0f;
+    public float pitchDist = 5.0f;
+    public float advertiseRate = 5f;
+    public float advertiseProb = 0.9f;
+
+    private Vector3 wanderForce;
     private Vector3 velocity;
-    private Vector3 destination;
-    private Vector3 desiredVelocity;
-    private Vector3 target;
+    private Transform target;
     private List<Vector3> path;
     private List<Vector3> obstacles;
 
@@ -32,70 +38,118 @@ public class AdvertiserBehaviour : MonoBehaviour {
     public bool traversing = false;
     public bool shopping = false;
 
+    private float time = 0.0f;
+    private float chaseTime = 0.0f;
+    private float pitchTime = 0.0f;
+
+    private bool flyeredSuccess;
+    public int numOfSales = 0;
+
     void Start() {
-        speed = Random.Range(0.17f, maxSpeed);
         velocity = Vector3.zero;
-        steering = Vector3.zero;
-        desiredVelocity = Vector3.zero;
-        float zIndex = Random.Range(-15f, 15f);
-        target = new Vector3(99f, 0, zIndex);
+        flyerInstances = new List<GameObject>();
+
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
         obstacles = tp.planterPosition;
         obstacles.AddRange(tp.tablePosition);
-
-        float action = Random.Range(0f, 1f);
-        traversing = action >= 0.5f;
-        shopping = action < 0.5f;
-        if (shopping) {
-            int shopVisited = Random.Range(0, 16);
-            target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;
-        }
     }
 
     // Update is called once per frame
     void Update() {
-
-        if (traversing) {
+        DropFlyer();
+        if (flyeredSuccess && target != null && shopperBehavior.flyerAttract) {
+            //chaseTime += Time.deltaTime;
+            //if (chaseTime <= 4f) {
             Seek();
-            Collision();
-            Move();
+            Pitch();
+            //} else {
+            //flyeredSuccess = false;
+            //Wander();
+            //}
+        } else {
+            Wander();
+            flyeredSuccess = findFlyeredShopper();
         }
-
-        if (shopping) {
-            if (Vector3.Distance(target, transform.position) > 5f && chair == null) {
-                Seek();
-                Collision();
-                Move();
-            } else {
-                if (chair == null)
-                    chair = tp.GetEmptyChair();
-                //Not to assign chair twice
-                if (chair != null) {
-                    target = chair.transform.position;
-                    if (Vector3.Distance(target, transform.position) > 5f) {
-                        Seek();
-                        CollisionWithOtherTable(chair.parent);
-                        Move();
-                    } else {
-                        float zIndex = Random.Range(-15f, 15f);
-                        target = new Vector3(99f, 0, zIndex);
-                        traversing = true;
-                        shopping = false;
-                    }
-                }
+        Collision();
+        Move();
+    }
+    void Pitch() {
+        if(Vector3.Distance(target.position, transform.position) <= pitchDist) {
+            pitchTime += Time.deltaTime;
+            if(pitchTime >= 4.0f) {
+                numOfSales++;
+                print(numOfSales);
+                flyeredSuccess = false;
+                shopperBehavior.flyerAttract = false;
+                target.transform.GetComponent<Renderer>().material = shopperBehavior.notFlyered;
+                pitchTime = 0;
             }
         }
     }
+    void DropFlyer() {
+        time += Time.deltaTime;
+        if (Random.value < advertiseProb && time >= advertiseRate) {
+            time = 0;
+            GameObject flyer = Instantiate(flyerPrefab, transform.position, transform.rotation, null);
+            flyerInstances.Add(flyer);
+        }
+    }
 
-    void CollisionWithOtherTable(int tableNum) {
+    bool findFlyeredShopper() {
+        GameObject[] shoppers = GameObject.FindGameObjectsWithTag("Shopper");
+        int index = 0;
+        for (index = 0; index < shoppers.Length; index++) {
+            bool flyerAttract = shoppers[index].GetComponent<ShopperBehavior>().flyerAttract;
+            if (flyerAttract) {
+                if (Vector3.Distance(shoppers[index].transform.position, transform.position) < observationDist) {
+                    shopperBehavior = shoppers[index].GetComponent<ShopperBehavior>();
+                    forces.Clear();
+                    target = shoppers[index].transform;
+                    return true;
+                }
+            }
+        }
+        return false;
 
     }
 
     void Seek() {
-        var desiredVelocity = target - transform.position;
+        var desiredVelocity = target.transform.position - transform.position;
         desiredVelocity = desiredVelocity.normalized * maxSpeed;
         desiredVelocity -= velocity;
         AddForce(1.0f, desiredVelocity);
+    }
+
+    private void Wander() {
+        if (transform.position.magnitude > 5f) {
+            var directionToCenter = (Vector3.zero - transform.position).normalized;
+            wanderForce = velocity.normalized + directionToCenter;
+        } else if (Random.value < 0.5f) {
+            wanderForce = GetRandomWanderForce();
+        }
+        var desiredVelocity = wanderForce;
+        desiredVelocity = desiredVelocity.normalized * maxSpeed;
+        desiredVelocity -= velocity;
+        AddForce(1.0f, desiredVelocity);
+
+    }
+
+    private Vector3 GetRandomWanderForce() {
+        var circleCenter = velocity.normalized;
+        var randomPoint = Random.insideUnitCircle;
+
+        var displacement = new Vector3(randomPoint.x, randomPoint.y) * 8f;
+        displacement = Quaternion.LookRotation(velocity) * displacement;
+
+        var wanderForce = circleCenter + displacement;
+
+        return wanderForce;
+    }
+
+    public void setAngle(Vector3 vector, float value) {
+        var len = vector.magnitude;
+        vector.x = Mathf.Cos(value) * len;
+        vector.z = Mathf.Sin(value) * len;
     }
 
     void Move() {
