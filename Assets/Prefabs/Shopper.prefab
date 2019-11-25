@@ -207,13 +207,18 @@ MonoBehaviour:
   flyered: {fileID: 2100000, guid: a26667dae756aac4986ff0fe6c26bf2c, type: 2}
   notFlyered: {fileID: 2100000, guid: 09d10a867d6b91d4cb9629bff005a85e, type: 2}
   flyerAttract: 0
-  obstacleDistance: 5
+  obstacleDistance: 8
   maxSpeed: 10
-  maxForce: 10
+  maxForce: 15
   maxSeeAhead: 10
-  maxAvoidForce: 10
+  maxAvoidForce: 15
+  obRadius: 5
+  agentRadius: 5
   traversing: 0
   shopping: 0
+  shopTime: 0
+  sitTime: 0
+  flyerTime: 0
 --- !u!54 &54185797403585430
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -78,10 +78,8 @@ public class AdvertiserBehaviour : MonoBehaviour {
             pitchTime += Time.deltaTime;
             if(pitchTime >= 4.0f) {
                 numOfSales++;
-                print(numOfSales);
                 flyeredSuccess = false;
-                shopperBehavior.flyerAttract = false;
-                target.transform.GetComponent<Renderer>().material = shopperBehavior.notFlyered;
+                shopperBehavior.Reset();                
                 pitchTime = 0;
             }
         }

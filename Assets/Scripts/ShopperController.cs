@@ -26,7 +26,10 @@ public class ShopperController : MonoBehaviour {
     void Update() {
         for (int i = 0; i < shopperInstances.Count; i++) {
             float x = shopperInstances[i].transform.position.x;
-            if (x > 98f) {
+            float y = shopperInstances[i].transform.position.y;
+            float z = shopperInstances[i].transform.position.z;
+            //outofBound
+            if (x > 98f || Mathf.Abs(y) > 0.5f || Mathf.Abs(z) > 55f) {
                 Destroy(shopperInstances[i]);
                 shopperInstances.RemoveAt(i);
                 SpawnShopper();

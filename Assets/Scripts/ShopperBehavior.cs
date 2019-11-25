@@ -13,7 +13,6 @@ public class ShopperBehavior : MonoBehaviour {
     public Material flyered;
     public Material notFlyered;
     private GameObject flyer;
-    private float flyeredWait = 2f;
     public bool flyerAttract = false;
 
     public float obstacleDistance = 8f;
@@ -23,13 +22,11 @@ public class ShopperBehavior : MonoBehaviour {
     public float maxSeeAhead = 20f;
     public float maxAvoidForce = 10.0f;
 
-    private float speed;
-    private Vector3 steering;
-    private Vector3 velocity;
-    private Vector3 destination;
-    private Vector3 desiredVelocity;
+    public Vector3 velocity;
+    public float magnitude;
     private Vector3 target;
-    private List<Vector3> obstacles;
+    private List<Vector3> tables;
+    private List<Vector3> planters;
     private List<GameObject> flyers;
 
     private List<BehaviorForce> forces = new List<BehaviorForce>();
@@ -39,18 +36,17 @@ public class ShopperBehavior : MonoBehaviour {
     public bool traversing = false;
     public bool shopping = false;
 
-    private float time = 0.0f;
+    public float shopTime = 0.0f;
+    public float sitTime = 0.0f;
+    public float flyerTime = 0.0f;
 
-    void Start() {
-        speed = Random.Range(0.17f, maxSpeed);
-        velocity = Vector3.zero;
-        steering = Vector3.zero;
-        desiredVelocity = Vector3.zero;
-        float zIndex = Random.Range(-15f, 15f);
-        target = new Vector3(99f, 0, zIndex);
+    void Start() {        
+        velocity = Vector3.zero;  
+
+        target = new Vector3(99f, 0, Random.Range(-15f, 15f));
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
-        obstacles = tp.planterPosition;
-        obstacles.AddRange(tp.tablePosition);
+        planters = tp.planterPosition;
+        tables = tp.tablePosition;
 
         float action = Random.Range(0f, 1f);
         traversing = action >= 0.5f;
@@ -60,22 +56,27 @@ public class ShopperBehavior : MonoBehaviour {
             target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;
         }
     }
+    public void Reset() {        
+        flyerTime = 0;
+        flyerAttract = false;
+        velocity = Vector3.zero;
+        transform.GetComponent<Renderer>().material = notFlyered;
+    }
 
-    // Update is called once per frame
     void Update() {
 
-        if (flyerAttract && time < flyeredWait) {
+        if (flyerAttract && flyerTime < 2.0f) {
             velocity = Vector3.zero;
             transform.GetComponent<Renderer>().material = flyered;
             if (flyer != null) {
-                transform.position = flyer.transform.position;
+                velocity = Vector3.zero;
                 flyers.Remove(flyer);
                 Destroy(flyer);
             }
-            if (time < flyeredWait) {
-                time += Time.deltaTime;
+            if (flyerTime < 2.0f) {
+                flyerTime += Time.deltaTime;
             } else {
-                time = 0;
+                flyerTime = 0;
                 //flyerAttract = false;
             }
         } else {
@@ -83,56 +84,67 @@ public class ShopperBehavior : MonoBehaviour {
                 flyerAttract = CollisionWithFlyer();
             }
 
-            if (traversing) {
+            if (traversing) {                
                 Seek();
                 Collision();
                 Move();
+                if (chair != null) {
+                    chair.transform.GetComponent<CapsuleCollider>().enabled = true;
+                }
             }
 
             if (shopping) {
-                if (Vector3.Distance(target, transform.position) > 15f && chair == null) {
+                if (Vector3.Distance(target, transform.position) > obstacleDistance && chair == null) {
                     Seek();
                     Collision();
                     Move();
                 } else {
-                    if (chair == null)
+                    if (chair == null) {
                         chair = tp.GetEmptyChair();
-                    //Not to assign chair twice
-                    if (chair != null) {
                         target = chair.transform.position;
-                        if (Vector3.Distance(target, transform.position) > 5f) {
+                        velocity = Vector3.zero;
+                        forces.Clear();
+                    }
+                    //Inside Shop, Wait 1s;
+                    if (shopTime <= 1.0f)
+                        shopTime += Time.deltaTime;
+                    else {                          
+                        if (Vector3.Distance(target, transform.position) > 3f) {                            
                             Seek();
-                            CollisionWithOtherTable(chair.parent);
+                            CollisionWithOtherTable();
                             Move();
                         } else {
-                            float zIndex = Random.Range(-15f, 15f);
-                            target = new Vector3(99f, 0, zIndex);
-                            traversing = true;
-                            shopping = false;
-                        }
+                            transform.position = target;
+                            chair.transform.GetComponent<CapsuleCollider>().enabled = false;
+                            velocity = Vector3.zero;
+                            forces.Clear();
+                            if (sitTime < 3.0f) {
+                                sitTime += Time.deltaTime;
+                            } else {                                
+                                target = new Vector3(99f, 0, Random.Range(-15f, 15f));
+                                traversing = true;
+                                shopping = false;
+                                tp.ChairReset(chair);
+                            }
+                        }                        
                     }
                 }
-
             }
         }
     }
 
-    bool CollisionWithFlyer() {
-        flyers = new List<GameObject>();
-        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Flyer")) {
-            flyers.Add(g);
-        }
-               
-        if (flyers.Count == 0)
-            return false;
-
-        flyer = flyers.Find(e => Vector3.Distance(e.transform.position, transform.position) < 2f);
-
-        return flyer != null;
-    }
-
-    void CollisionWithOtherTable(int tableNum) {
+    Vector3 CollisionWithWall() {
         Vector3 calcForce = Vector3.zero;
+
+        //for (int i = 0; i < 2; i++) {
+        //    float dist = Mathf.Abs(tp.wallPosition[i].z - 32f - transform.position.z);
+        //    if (dist > 5f)
+        //        continue;
+
+        //    Debug.DrawLine(transform.position, new Vector3(transform.position.x, 0, tp.wallPosition[i].z - 32f), Color.red);
+        //    calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+        //}
+
         for (int i = 2; i < tp.wallPosition.Count; i++) {
 
             float obRadius = 5f;
@@ -154,6 +166,123 @@ public class ShopperBehavior : MonoBehaviour {
                 continue;
 
             Debug.DrawLine(transform.position, tp.wallPosition[i], Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+        return calcForce;
+    }
+    Vector3 CollisionWithPlanter() {
+        Vector3 calcForce = Vector3.zero;
+
+        for (int i = 0; i < planters.Count; i++) {
+
+            float obRadius = 5f;
+            float agentRadius = 5f;
+
+            Vector3 vecToCenter = planters[i] - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, planters[i], Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+        return calcForce;
+    }
+    bool CollisionWithFlyer() {
+        flyers = new List<GameObject>();
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Flyer")) {
+            flyers.Add(g);
+        }
+               
+        if (flyers.Count == 0)
+            return false;
+
+        flyer = flyers.Find(e => Vector3.Distance(e.transform.position, transform.position) < 2f);
+
+        return flyer != null;
+    }
+
+    void CollisionWithOtherTable() {
+        Vector3 calcForce = CollisionWithWall();
+        calcForce += CollisionWithPlanter();
+
+        for (int i = 0; i < tables.Count; i++) {
+            if (i == chair.parent)
+                continue;
+            float obRadius = 8f;
+            float agentRadius = 8f;
+
+            Vector3 vecToCenter = tables[i] - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, tables[i], Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+
+        if (calcForce.magnitude > 0)
+            AddForce(2.0f, calcForce);
+    }
+
+    private void Collision() {
+
+        Vector3 calcForce = CollisionWithWall();
+        calcForce += CollisionWithPlanter();
+
+        for (int i = 0; i < tables.Count; i++) {
+
+            float obRadius = 8f;
+            float agentRadius = 8f;
+
+            Vector3 vecToCenter = tables[i] - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, tables[i], Color.red);
 
             if (rightDotVTC > 0)
                 calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
@@ -194,92 +323,19 @@ public class ShopperBehavior : MonoBehaviour {
 
         if (velocity != Vector3.zero)
             transform.forward = velocity.normalized;
+        if (magnitude > 14) {
+            velocity = Vector3.zero;
+        }
+        magnitude = velocity.magnitude;
         transform.position += velocity * Time.deltaTime;
         forces.Clear();
         Debug.DrawRay(transform.position, transform.forward * 5);
-
     }
 
-    private void Collision() {
-
-        Vector3 calcForce = Vector3.zero;
-
-        for (int i = 0; i < obstacles.Count; i++) {
-
-            float obRadius = 10f;
-            float agentRadius = 10f;
-
-            Vector3 vecToCenter = obstacles[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, obstacles[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
-        for (int i = 0; i < 2; i++) {
-            float dist = Mathf.Abs(tp.wallPosition[i].z - transform.position.z);
-            if (dist > 5f)
-                continue;
-
-            Debug.DrawLine(transform.position, new Vector3(transform.position.x, 0, tp.wallPosition[i].z), Color.red);
-            calcForce += transform.right * -1 * obstacleDistance / dist;
-        }
-
-
-        for (int i = 2; i < tp.wallPosition.Count; i++) {
-
-            float obRadius = 5f;
-            float agentRadius = 5f;
-
-            Vector3 vecToCenter = tp.wallPosition[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, tp.wallPosition[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
-
-        if (calcForce.magnitude > 0)
-            AddForce(2.0f, calcForce);
-    }
+    
 
     public void AddForce(float weight, Vector3 force) {
         forces.Add(new BehaviorForce() { Weight = weight, Force = force });
-    }
-
-    private bool lineIntersectsCircle(Vector3 ahead, Vector3 ahead2, Vector3 objectPostion) {
-        // the property "center" of the obstacle is a Vector3D.
-        return Vector3.Distance(objectPostion, ahead) <= 10f || Vector3.Distance(objectPostion, ahead2) <= 10f;
-    }
+    }  
 
 }

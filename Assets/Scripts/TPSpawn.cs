@@ -8,6 +8,7 @@ public class TPSpawn : MonoBehaviour {
     public GameObject planterPrefab;
 
     public Material assigned;
+    public Material notAssigned;
 
     private List<GameObject> tableInstances;
     private List<GameObject> planterInstances;
@@ -67,7 +68,7 @@ public class TPSpawn : MonoBehaviour {
             table.transform.position = tablePosition[i];
             tableInstances.Add(table);
             for (int j = 1; j < table.transform.childCount; j++) {
-                Chair chair = new Chair(table.transform.GetChild(j), j, i, false, false);
+                Chair chair = new Chair(table.transform.GetChild(j), j, i, false);
                 chairs.Add(chair);
             }
         }
@@ -92,20 +93,23 @@ public class TPSpawn : MonoBehaviour {
         return chairs[chairIndex];
     }
     
+    public void ChairReset(Chair chair) {
+        chair.isAssigned = false;
+        chair.transform.GetComponent<Renderer>().material = notAssigned;
+    }
 }
 public class Chair {
     public Transform transform;
     public int index;
     public int parent;
-    public bool isOccupied;
     public bool isAssigned;
 
-    public Chair(Transform t, int index, int parent, bool isOccupied, bool isAssigned) {
+    public Chair(Transform t, int index, int parent, bool isAssigned) {
         transform = t;
         this.index = index;
         this.parent = parent;
-        this.isOccupied = isOccupied;
         this.isAssigned = isAssigned;
     }
+
 }
 
