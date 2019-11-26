@@ -70,7 +70,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
             Wander();
             flyeredSuccess = findFlyeredShopper();
         }
-        Collision();
+        CollisionForce();
         Move();
     }
     void Pitch() {
@@ -178,85 +178,29 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     }
 
-    private void Collision() {
+    private void CollisionForce() {
 
-        Vector3 calcForce = Vector3.zero;
-
-        for (int i = 0; i < obstacles.Count; i++) {
-
-            float obRadius = 10f;
-            float agentRadius = 10f;
-
-            Vector3 vecToCenter = obstacles[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, obstacles[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
-        for (int i = 0; i < 2; i++) {
-            float dist = Mathf.Abs(tp.wallPosition[i].z - transform.position.z);
-            if (dist > 5f)
-                continue;
-
-            Debug.DrawLine(transform.position, new Vector3(transform.position.x, 0, tp.wallPosition[i].z), Color.red);
-            calcForce += transform.right * -1 * obstacleDistance / dist;
-        }
-
-
-        for (int i = 2; i < tp.wallPosition.Count; i++) {
-
-            float obRadius = 5f;
-            float agentRadius = 5f;
-
-            Vector3 vecToCenter = tp.wallPosition[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, tp.wallPosition[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
+        Vector3 calcForce = Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithPlanter(tp.planterPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithTable(tp.tablePosition, this.transform, obstacleDistance, maxSpeed, -1);
 
         if (calcForce.magnitude > 0)
             AddForce(2.0f, calcForce);
+
+        List<Vector3> agents = new List<Vector3>();
+
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Advertiser")) {
+            if (g.name == this.name)
+                continue;
+            agents.Add(g.transform.position);
+        }
+
+        calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
+        if (calcForce.magnitude > 0)
+            AddForce(1.0f, calcForce);
     }
 
     public void AddForce(float weight, Vector3 force) {
         forces.Add(new BehaviorForce() { Weight = weight, Force = force });
-    }
-
-    private bool lineIntersectsCircle(Vector3 ahead, Vector3 ahead2, Vector3 objectPostion) {
-        // the property "center" of the obstacle is a Vector3D.
-        return Vector3.Distance(objectPostion, ahead) <= 10f || Vector3.Distance(objectPostion, ahead2) <= 10f;
     }
 }

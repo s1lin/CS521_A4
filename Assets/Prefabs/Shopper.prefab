@@ -209,11 +209,11 @@ MonoBehaviour:
   flyerAttract: 0
   obstacleDistance: 8
   maxSpeed: 10
-  maxForce: 15
+  maxForce: 10
   maxSeeAhead: 10
-  maxAvoidForce: 15
-  obRadius: 5
-  agentRadius: 5
+  maxAvoidForce: 10
+  velocity: {x: 0, y: 0, z: 0}
+  magnitude: 0
   traversing: 0
   shopping: 0
   shopTime: 0

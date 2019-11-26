@@ -9,16 +9,17 @@ public class ShopperController : MonoBehaviour {
 
     public GameObject shopperPrefab;
 
-    private List<GameObject> shopperInstances;
+    public List<GameObject> shopperInstances;
 
     void Start() {
         shopperInstances = new List<GameObject>();
+       
         StartCoroutine(SpawnAgents());
     }
 
     IEnumerator SpawnAgents() {
         for (int i = 0; i < numOfShoppers; i++) {
-            SpawnShopper();
+            SpawnShopper(i);
             yield return new WaitForSeconds(2);
         }
     }
@@ -32,15 +33,16 @@ public class ShopperController : MonoBehaviour {
             if (x > 98f || Mathf.Abs(y) > 0.5f || Mathf.Abs(z) > 55f) {
                 Destroy(shopperInstances[i]);
                 shopperInstances.RemoveAt(i);
-                SpawnShopper();
+                SpawnShopper(i);
             }
         }
     }
 
-    void SpawnShopper() {
+    void SpawnShopper(int i) {
         float zIndex = Random.Range(-15f, 15f);
         Vector3 pos = new Vector3(-99f, 0, zIndex);
-        GameObject shopper = Instantiate(shopperPrefab, pos, Quaternion.identity, transform);
+        GameObject shopper = Instantiate(shopperPrefab, pos, Quaternion.identity, transform);       
+        shopper.name = "shopper" + i;
         shopperInstances.Add(shopper);
     }
 }

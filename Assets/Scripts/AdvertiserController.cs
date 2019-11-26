@@ -9,7 +9,7 @@ public class AdvertiserController: MonoBehaviour {
 
     public GameObject advertiserPrefab;
 
-    private List<GameObject> advertiserInstances;
+    public List<GameObject> advertiserInstances;
 
     void Start() {
         advertiserInstances = new List<GameObject>();
@@ -18,7 +18,7 @@ public class AdvertiserController: MonoBehaviour {
 
     IEnumerator SpawnAgents() {
         for (int i = 0; i < numOfAdvertiser; i++) {
-            SpawnAdvertiser();
+            SpawnAdvertiser(i);
             yield return new WaitForSeconds(2);
         }
     }
@@ -34,11 +34,12 @@ public class AdvertiserController: MonoBehaviour {
         }
     }
 
-    void SpawnAdvertiser() {
+    void SpawnAdvertiser(int i) {
         float zIndex = Random.Range(-15f, 15f);
         float xIndex = Random.Range(-90f, -45f);
         Vector3 pos = new Vector3(xIndex, 0, zIndex);
         GameObject advertiser = Instantiate(advertiserPrefab, pos, Quaternion.identity, transform);
+        advertiser.name = "advertiser" + i;
         advertiserInstances.Add(advertiser);
     }
 }

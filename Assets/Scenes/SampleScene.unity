@@ -1570,7 +1570,7 @@ GameObject:
   - component: {fileID: 616810880}
   m_Layer: 0
   m_Name: Shopper
-  m_TagString: Untagged
+  m_TagString: SP
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1591,6 +1591,7 @@ MonoBehaviour:
   numOfShoppers: 10
   shopperPrefab: {fileID: 1030459188696644, guid: 789091729ed06fd41a0a738273ce465c,
     type: 3}
+  shopperInstances: []
 --- !u!4 &616810881
 Transform:
   m_ObjectHideFlags: 0
@@ -4624,49 +4625,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433882751}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1489425512
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1489425513}
-  - component: {fileID: 1489425514}
-  m_Layer: 0
-  m_Name: Map
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1489425513
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1489425512}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1489425514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1489425512}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50c00f55c7c9d3146afa4a0aa19b7e05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1574465639
 GameObject:
   m_ObjectHideFlags: 0
@@ -5237,7 +5195,7 @@ GameObject:
   - component: {fileID: 1794950383}
   m_Layer: 0
   m_Name: Advertiser
-  m_TagString: Untagged
+  m_TagString: AP
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5272,6 +5230,7 @@ MonoBehaviour:
   numOfAdvertiser: 5
   advertiserPrefab: {fileID: 1025655117217532, guid: 714c9ddcb11815345aa73a863653ab10,
     type: 3}
+  advertiserInstances: []
 --- !u!1 &1845453559
 GameObject:
   m_ObjectHideFlags: 0

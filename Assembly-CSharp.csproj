@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\AdvertiserBehaviour.cs" />
     <Compile Include="Assets\Scripts\AdvertiserController.cs" />
+    <Compile Include="Assets\Scripts\Collision.cs" />
     <Compile Include="Assets\Scripts\ShopperBehavior.cs" />
     <Compile Include="Assets\Scripts\ShopperController.cs" />
     <Compile Include="Assets\Scripts\TPSpawn.cs" />
