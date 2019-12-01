@@ -18,8 +18,8 @@ public class Collision : MonoBehaviour {
 
         for (int i = 2; i < wallPosition.Count; i++) {
 
-            float obRadius = 5f;
-            float agentRadius = 5f;
+            float obRadius = 3f;
+            float agentRadius = 3f;
 
             Vector3 vecToCenter = wallPosition[i] - transform.position;
             vecToCenter.y = 0;
@@ -45,6 +45,41 @@ public class Collision : MonoBehaviour {
         }
         return calcForce;
     }
+
+    public static Vector3 CollisionWithWall(List<Vector3> wallPosition, Transform transform, float obstacleDistance, float maxSpeed, int shopVisited) {
+        Vector3 calcForce = Vector3.zero;
+
+        for (int i = 0; i < wallPosition.Count; i++) {
+            if (i == shopVisited)
+                continue;
+            float obRadius = 3f;
+            float agentRadius = 3f;
+
+            Vector3 vecToCenter = wallPosition[i] - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, wallPosition[i], Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+        return calcForce;
+    }
+
 
     public static Vector3 CollisionWithPlanter(List<Vector3> planters, Transform transform, float obstacleDistance, float maxSpeed) {
         Vector3 calcForce = Vector3.zero;
@@ -84,7 +119,7 @@ public class Collision : MonoBehaviour {
         for (int i = 0; i < tables.Count; i++) {
             if (i == tableNum)
                 continue;
-            float obRadius = 8f;
+            float obRadius = 10f;
             float agentRadius = 8f;
 
             Vector3 vecToCenter = tables[i] - transform.position;
@@ -111,9 +146,42 @@ public class Collision : MonoBehaviour {
         }
         return calcForce;
     }
-   
+
+    public static Vector3 CollisionWithChair(List<Chair> chairs, Transform transform, float obstacleDistance, float maxSpeed, int tableNum) {
+        Vector3 calcForce = Vector3.zero;
+        for (int i = 0; i < chairs.Count; i++) {
+            if (chairs[i].parent == tableNum)
+                continue;
+            float obRadius = 5f;
+            float agentRadius = 5f;
+
+            Vector3 vecToCenter = chairs[i].transform.position - transform.position;
+            vecToCenter.y = 0;
+            float dist = vecToCenter.magnitude;
+
+            if (dist > obstacleDistance + obRadius + agentRadius)
+                continue;
+
+            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
+                continue;
+
+            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
+
+            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
+                continue;
+
+            Debug.DrawLine(transform.position, chairs[i].transform.position, Color.red);
+
+            if (rightDotVTC > 0)
+                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
+            else
+                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+        }
+        return calcForce;
+    }
+
     public static Vector3 CollisionWithOtherAgent(List<Vector3> agents, Transform transform, float obstacleDistance, float maxSpeed, Vector3 velocity) {
-        
+
         Vector3 separationForce = Vector3.zero;
         int index = 0;
 
@@ -121,7 +189,7 @@ public class Collision : MonoBehaviour {
         foreach (Vector3 c in agents) {
 
             float distance = Vector3.Distance(transform.position, c);
-            if (distance < 15f) {
+            if (distance < 10f) {
                 separationForce += (transform.position - c).normalized / distance;
                 Debug.DrawLine(transform.position, c, Color.red);
                 index++;

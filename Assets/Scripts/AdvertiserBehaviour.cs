@@ -48,7 +48,6 @@ public class AdvertiserBehaviour : MonoBehaviour {
     void Start() {
         velocity = Vector3.zero;
         flyerInstances = new List<GameObject>();
-
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
         obstacles = tp.planterPosition;
         obstacles.AddRange(tp.tablePosition);
@@ -56,16 +55,20 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        
         DropFlyer();
         if (flyeredSuccess && target != null && shopperBehavior.flyerAttract) {
-            //chaseTime += Time.deltaTime;
-            //if (chaseTime <= 4f) {
-            Seek();
-            Pitch();
-            //} else {
-            //flyeredSuccess = false;
-            //Wander();
-            //}
+            chaseTime += Time.deltaTime;
+            Debug.DrawLine(transform.position, target.position);
+            if (chaseTime <= 4f) {
+                Seek();
+                Pitch();
+                
+            } else {
+                flyeredSuccess = false;
+                Wander();
+                chaseTime = 0f;
+            }
         } else {
             Wander();
             flyeredSuccess = findFlyeredShopper();
@@ -74,12 +77,13 @@ public class AdvertiserBehaviour : MonoBehaviour {
         Move();
     }
     void Pitch() {
-        if(Vector3.Distance(target.position, transform.position) <= pitchDist) {
+        if (Vector3.Distance(target.position, transform.position) <= pitchDist) {
             pitchTime += Time.deltaTime;
-            if(pitchTime >= 4.0f) {
+            if (pitchTime >= 4.0f) {
                 numOfSales++;
+                transform.GetComponentInChildren<TextMesh>().text = numOfSales.ToString();
                 flyeredSuccess = false;
-                shopperBehavior.Reset();                
+                shopperBehavior.Reset();
                 pitchTime = 0;
             }
         }
@@ -120,7 +124,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     private void Wander() {
         if (transform.position.magnitude > 5f) {
-            var directionToCenter = (Vector3.zero - transform.position).normalized;
+            var directionToCenter = (new Vector3(-70f, 0, 10f) - transform.position).normalized;
             wanderForce = velocity.normalized + directionToCenter;
         } else if (Random.value < 0.5f) {
             wanderForce = GetRandomWanderForce();
@@ -180,7 +184,8 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     private void CollisionForce() {
 
-        Vector3 calcForce = Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed)
+        Vector3 calcForce = Collision.CollisionWithWall(tp.shopWallPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed, -1)
             + Collision.CollisionWithPlanter(tp.planterPosition, this.transform, obstacleDistance, maxSpeed)
             + Collision.CollisionWithTable(tp.tablePosition, this.transform, obstacleDistance, maxSpeed, -1);
 
@@ -194,10 +199,15 @@ public class AdvertiserBehaviour : MonoBehaviour {
                 continue;
             agents.Add(g.transform.position);
         }
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Shopper")) {
+            if (g.GetComponent<ShopperBehavior>().flyerAttract)
+                continue;
+            agents.Add(g.transform.position);
+        }
 
         calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
         if (calcForce.magnitude > 0)
-            AddForce(1.0f, calcForce);
+            AddForce(0.5f, calcForce);
     }
 
     public void AddForce(float weight, Vector3 force) {

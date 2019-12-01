@@ -16,6 +16,7 @@ public class TPSpawn : MonoBehaviour {
     public List<Vector3> tablePosition;
     public List<Vector3> planterPosition;
     public List<Vector3> wallPosition;
+    public List<Vector3> shopWallPosition;
 
     public List<Chair> chairs;
 
@@ -29,6 +30,12 @@ public class TPSpawn : MonoBehaviour {
         GameObject[] walls = GameObject.FindGameObjectsWithTag("Wall");
         foreach(GameObject g in walls) {
             wallPosition.Add(g.transform.position);
+        }
+
+        shopWallPosition = new List<Vector3>();
+        GameObject[] shopWalls = GameObject.FindGameObjectsWithTag("ShopWall");
+        foreach (GameObject g in shopWalls) {
+            shopWallPosition.Add(g.transform.position);
         }
     }
 

@@ -188,10 +188,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.5000001
+  m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &114279272307760288
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,18 +207,21 @@ MonoBehaviour:
   flyered: {fileID: 2100000, guid: a26667dae756aac4986ff0fe6c26bf2c, type: 2}
   notFlyered: {fileID: 2100000, guid: 09d10a867d6b91d4cb9629bff005a85e, type: 2}
   flyerAttract: 0
-  obstacleDistance: 8
-  maxSpeed: 10
-  maxForce: 10
-  maxSeeAhead: 10
-  maxAvoidForce: 10
+  obstacleDistance: 5
+  maxSpeed: 8
+  maxForce: 8
+  maxSeeAhead: 8
+  maxAvoidForce: 8
   velocity: {x: 0, y: 0, z: 0}
   magnitude: 0
+  agents: []
   traversing: 0
   shopping: 0
   shopTime: 0
   sitTime: 0
   flyerTime: 0
+  caclForce: {x: 0, y: 0, z: 0}
+  caclForceMagnitude: 0
 --- !u!54 &54185797403585430
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -324,7 +327,7 @@ BoxCollider:
   m_GameObject: {fileID: 1518249935407062}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}

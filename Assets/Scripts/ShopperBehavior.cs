@@ -34,6 +34,8 @@ public class ShopperBehavior : MonoBehaviour {
     private ShopperController sp;
     private AdvertiserController ap;
     private Chair chair;
+    private Rigidbody rigidbody;
+    private int shopVisited;
 
     public bool traversing = false;
     public bool shopping = false;
@@ -41,14 +43,17 @@ public class ShopperBehavior : MonoBehaviour {
     public float shopTime = 0.0f;
     public float sitTime = 0.0f;
     public float flyerTime = 0.0f;
+    public Vector3 caclForce;
+    public float caclForceMagnitude;
+    
 
     void Start() {
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
         ap = GameObject.FindGameObjectWithTag("AP").GetComponent<AdvertiserController>();
         sp = GameObject.FindGameObjectWithTag("SP").GetComponent<ShopperController>();
 
-        velocity = Vector3.zero;  
-
+        velocity = Vector3.zero;
+        rigidbody = GetComponent<Rigidbody>();
         target = new Vector3(99f, 0, Random.Range(-15f, 15f));
         
         planters = tp.planterPosition;
@@ -58,8 +63,8 @@ public class ShopperBehavior : MonoBehaviour {
         traversing = action >= 0.5f;
         shopping = action < 0.5f;
         if (shopping) {
-            int shopVisited = Random.Range(0, 16);
-            target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;
+            shopVisited = Random.Range(0, 16);
+            target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;           
         }
     }
     public void Reset() {        
@@ -70,7 +75,7 @@ public class ShopperBehavior : MonoBehaviour {
     }
 
     void Update() {
-
+        Debug.DrawLine(transform.position, target);
         if (flyerAttract && flyerTime < 2.0f) {
             velocity = Vector3.zero;
             transform.GetComponent<Renderer>().material = flyered;
@@ -92,7 +97,7 @@ public class ShopperBehavior : MonoBehaviour {
 
             if (traversing) {                
                 Seek();
-                CollisionAvoidance(-1);
+                CollisionAvoidance(-1, -1);
                 Move();
                 if (chair != null) {
                     chair.transform.GetComponent<CapsuleCollider>().enabled = true;
@@ -102,7 +107,7 @@ public class ShopperBehavior : MonoBehaviour {
             if (shopping) {
                 if (Vector3.Distance(target, transform.position) > obstacleDistance && chair == null) {
                     Seek();
-                    CollisionAvoidance(-1);
+                    CollisionAvoidance(-1, shopVisited);
                     Move();
                 } else {
                     if (chair == null) {
@@ -115,9 +120,9 @@ public class ShopperBehavior : MonoBehaviour {
                     if (shopTime <= 1.0f)
                         shopTime += Time.deltaTime;
                     else {                          
-                        if (Vector3.Distance(target, transform.position) > 3f) {                            
+                        if (Vector3.Distance(target, transform.position) > 4f) {                            
                             Seek();
-                            CollisionAvoidance(chair.parent);
+                            CollisionAvoidance(chair.parent, shopVisited);
                             Move();
                         } else {
                             transform.position = target;
@@ -130,6 +135,9 @@ public class ShopperBehavior : MonoBehaviour {
                                 target = new Vector3(99f, 0, Random.Range(-15f, 15f));
                                 traversing = true;
                                 shopping = false;
+                                Seek();
+                                CollisionAvoidance(chair.parent, -1);
+                                Move();
                                 tp.ChairReset(chair);
                             }
                         }                        
@@ -153,8 +161,10 @@ public class ShopperBehavior : MonoBehaviour {
         return flyer != null;
     }
 
-    void CollisionAvoidance(int tableNum) {
+    void CollisionAvoidance(int tableNum, int shopVisited) {
         Vector3 calcForce = Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithWall(tp.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited)
+            + Collision.CollisionWithChair(tp.chairs, this.transform, obstacleDistance, maxSpeed, tableNum)
             + Collision.CollisionWithPlanter(tp.planterPosition, this.transform, obstacleDistance, maxSpeed)
             + Collision.CollisionWithTable(tp.tablePosition, this.transform, obstacleDistance, maxSpeed, tableNum);
 
@@ -168,13 +178,10 @@ public class ShopperBehavior : MonoBehaviour {
                 continue;
             agents.Add(g.transform.position);
         }
-        //foreach (GameObject g in GameObject.FindGameObjectsWithTag("Advertiser")) {
-        //    agents.Add(g.transform.position);
-        //}
 
         calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
         if (calcForce.magnitude > 0)
-            AddForce(1.0f, calcForce);
+            AddForce(0.5f, calcForce);
     }
 
     void Seek() {
@@ -186,6 +193,7 @@ public class ShopperBehavior : MonoBehaviour {
 
     void Move() {
         float totalWeight = 0;
+
         foreach (BehaviorForce force in forces) {
             totalWeight += force.Weight;
         }
@@ -199,7 +207,8 @@ public class ShopperBehavior : MonoBehaviour {
         }
 
         appliedForce = Vector3.ClampMagnitude(appliedForce, maxForce);
-
+        caclForce = appliedForce;
+        caclForceMagnitude = caclForce.magnitude;
         velocity += appliedForce * Time.deltaTime;
         velocity.y = 0;
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
@@ -209,13 +218,18 @@ public class ShopperBehavior : MonoBehaviour {
         if (magnitude > 14) {
             velocity = Vector3.zero;
         }
-        magnitude = velocity.magnitude;
+        
+        magnitude = rigidbody.GetRelativePointVelocity(transform.position).magnitude;
+        if (magnitude > 25f) {
+            rigidbody.velocity = velocity;
+            rigidbody.angularVelocity = velocity;
+        }
+
         transform.position += velocity * Time.deltaTime;
         forces.Clear();
         Debug.DrawRay(transform.position, transform.forward * 5);
     }
-
-    
+        
 
     public void AddForce(float weight, Vector3 force) {
         forces.Add(new BehaviorForce() { Weight = weight, Force = force });

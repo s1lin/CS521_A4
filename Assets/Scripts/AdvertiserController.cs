@@ -6,6 +6,7 @@ public class AdvertiserController: MonoBehaviour {
 
     public int spawnRate;
     public int numOfAdvertiser = 1;
+    private int index = 0;
 
     public GameObject advertiserPrefab;
 
@@ -18,28 +19,33 @@ public class AdvertiserController: MonoBehaviour {
 
     IEnumerator SpawnAgents() {
         for (int i = 0; i < numOfAdvertiser; i++) {
-            SpawnAdvertiser(i);
+            SpawnAdvertiser();
             yield return new WaitForSeconds(2);
         }
     }
 
     void Update() {
         for (int i = 0; i < advertiserInstances.Count; i++) {
-            int x = advertiserInstances[i].GetComponent<AdvertiserBehaviour>().numOfSales;
-            if (x == 3) {
+            int sales = advertiserInstances[i].GetComponent<AdvertiserBehaviour>().numOfSales;
+            float x = advertiserInstances[i].transform.position.x;
+            float y = advertiserInstances[i].transform.position.y;
+            float z = advertiserInstances[i].transform.position.z;
+            //outofBound
+            if (x > 98f || Mathf.Abs(y) > 0.5f || Mathf.Abs(z) > 55f || sales == 3) {
                 Destroy(advertiserInstances[i]);
                 advertiserInstances.RemoveAt(i);
-                //SpawnAdvertiser();
+                SpawnAdvertiser();
             }
         }
     }
 
-    void SpawnAdvertiser(int i) {
+    void SpawnAdvertiser() {
         float zIndex = Random.Range(-15f, 15f);
         float xIndex = Random.Range(-90f, -45f);
         Vector3 pos = new Vector3(xIndex, 0, zIndex);
         GameObject advertiser = Instantiate(advertiserPrefab, pos, Quaternion.identity, transform);
-        advertiser.name = "advertiser" + i;
+        advertiser.name = "advertiser" + index;
+        index++;
         advertiserInstances.Add(advertiser);
     }
 }
