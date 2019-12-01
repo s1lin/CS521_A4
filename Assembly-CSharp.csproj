@@ -65,10 +65,12 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\AdvertiserBehaviour.cs" />
     <Compile Include="Assets\Scripts\AdvertiserController.cs" />
+    <Compile Include="Assets\Scripts\BehaviorForce.cs" />
+    <Compile Include="Assets\Scripts\Chair.cs" />
     <Compile Include="Assets\Scripts\Collision.cs" />
+    <Compile Include="Assets\Scripts\ObjectController.cs" />
     <Compile Include="Assets\Scripts\ShopperBehavior.cs" />
     <Compile Include="Assets\Scripts\ShopperController.cs" />
-    <Compile Include="Assets\Scripts\TPSpawn.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>F:/CS521/CS521_A4/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>

@@ -4,202 +4,94 @@ using UnityEngine;
 
 public class Collision : MonoBehaviour {
 
+    private static float agentRadius = 3f;
+
+    private static Vector3 CalculateForce(float obstacleRadius, float agentRadius, Vector3 obstaclePosition, Transform transform, float obstacleDistance, float maxSpeed) {
+        Vector3 vecToCenter = obstaclePosition - transform.position;
+        float distance = vecToCenter.magnitude;
+        float zDirect = Vector3.Dot(transform.forward, vecToCenter);
+        float xDirect = Vector3.Dot(transform.right, vecToCenter);
+
+        //is it too far:
+        if (distance > obstacleDistance + obstacleRadius + agentRadius)
+            return Vector3.zero;
+
+        //is it moving towards:
+        if (zDirect < 0)
+            return Vector3.zero;
+
+        Debug.DrawLine(transform.position, obstaclePosition, Color.red);
+        return transform.right * (-Mathf.Sign(xDirect) * maxSpeed) * obstacleDistance / distance;
+    }
+
+    private static Vector3 CalculateForce(Transform transform, Vector3 agentPosition) {
+        Debug.DrawLine(transform.position, agentPosition, Color.blue);
+        return (transform.position - agentPosition).normalized / Vector3.Distance(transform.position, agentPosition);
+    }
+
     public static Vector3 CollisionWithWall(List<Vector3> wallPosition, Transform transform, float obstacleDistance, float maxSpeed) {
         Vector3 calcForce = Vector3.zero;
-
-        //for (int i = 0; i < 2; i++) {
-        //    float dist = Mathf.Abs(tp.wallPosition[i].z - 32f - transform.position.z);
-        //    if (dist > 5f)
-        //        continue;
-
-        //    Debug.DrawLine(transform.position, new Vector3(transform.position.x, 0, tp.wallPosition[i].z - 32f), Color.red);
-        //    calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-        //}
+        float obstacleRadius = 3f;
 
         for (int i = 2; i < wallPosition.Count; i++) {
-
-            float obRadius = 3f;
-            float agentRadius = 3f;
-
-            Vector3 vecToCenter = wallPosition[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, wallPosition[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+            calcForce += CalculateForce(obstacleRadius, agentRadius, wallPosition[i], transform, obstacleDistance, maxSpeed);
         }
+
         return calcForce;
     }
 
     public static Vector3 CollisionWithWall(List<Vector3> wallPosition, Transform transform, float obstacleDistance, float maxSpeed, int shopVisited) {
         Vector3 calcForce = Vector3.zero;
+        float obstacleRadius = 3f;
 
         for (int i = 0; i < wallPosition.Count; i++) {
-            if (i == shopVisited)
-                continue;
-            float obRadius = 3f;
-            float agentRadius = 3f;
-
-            Vector3 vecToCenter = wallPosition[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, wallPosition[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+            if (i != shopVisited)
+                calcForce += CalculateForce(obstacleRadius, agentRadius, wallPosition[i], transform, obstacleDistance, maxSpeed);
         }
         return calcForce;
     }
 
-
     public static Vector3 CollisionWithPlanter(List<Vector3> planters, Transform transform, float obstacleDistance, float maxSpeed) {
         Vector3 calcForce = Vector3.zero;
+        float obstacleRadius = 5f;
 
-        for (int i = 0; i < planters.Count; i++) {
+        planters.ForEach(e => calcForce += CalculateForce(obstacleRadius, agentRadius, e, transform, obstacleDistance, maxSpeed));
 
-            float obRadius = 5f;
-            float agentRadius = 5f;
-
-            Vector3 vecToCenter = planters[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, planters[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
         return calcForce;
     }
 
     public static Vector3 CollisionWithTable(List<Vector3> tables, Transform transform, float obstacleDistance, float maxSpeed, int tableNum) {
         Vector3 calcForce = Vector3.zero;
+
+        float obstacleRadius = 5f;
+
         for (int i = 0; i < tables.Count; i++) {
-            if (i == tableNum)
-                continue;
-            float obRadius = 10f;
-            float agentRadius = 10f;
-
-            Vector3 vecToCenter = tables[i] - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
-
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, tables[i], Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
+            if (i != tableNum) {
+                calcForce += CalculateForce(obstacleRadius, agentRadius, tables[i], transform, obstacleDistance, maxSpeed);
+            }
         }
         return calcForce;
     }
 
     public static Vector3 CollisionWithChair(List<Chair> chairs, Transform transform, float obstacleDistance, float maxSpeed, int tableNum) {
         Vector3 calcForce = Vector3.zero;
-        for (int i = 0; i < chairs.Count; i++) {
-            if (chairs[i].parent == tableNum)
-                continue;
-            float obRadius = 5f;
-            float agentRadius = 5f;
+        float obstacleRadius = 8f;
 
-            Vector3 vecToCenter = chairs[i].transform.position - transform.position;
-            vecToCenter.y = 0;
-            float dist = vecToCenter.magnitude;
+        chairs.ForEach(e => calcForce += e.parent == tableNum ? Vector3.zero : CalculateForce(obstacleRadius, agentRadius, e.transform.position, transform, obstacleDistance, maxSpeed));
 
-            if (dist > obstacleDistance + obRadius + agentRadius)
-                continue;
-
-            if (Vector3.Dot(transform.forward, vecToCenter) < 0)
-                continue;
-
-            float rightDotVTC = Vector3.Dot(vecToCenter, transform.right);
-
-            if (Mathf.Abs(rightDotVTC) > agentRadius + obRadius)
-                continue;
-
-            Debug.DrawLine(transform.position, chairs[i].transform.position, Color.red);
-
-            if (rightDotVTC > 0)
-                calcForce += transform.right * -maxSpeed * obstacleDistance / dist;
-            else
-                calcForce += transform.right * maxSpeed * obstacleDistance / dist;
-        }
+        //if (Mathf.Abs(rightDotVTC) > agentRadius + obstacleRadius)
+        //    continue;
         return calcForce;
     }
 
     public static Vector3 CollisionWithOtherAgent(List<Vector3> agents, Transform transform, float obstacleDistance, float maxSpeed, Vector3 velocity) {
 
-        Vector3 separationForce = Vector3.zero;
-        int index = 0;
+        Vector3 calcForce = Vector3.zero;
 
-        // separation
-        foreach (Vector3 c in agents) {
-
-            float distance = Vector3.Distance(transform.position, c);
-            if (distance < 10f) {
-                separationForce += (transform.position - c).normalized / distance;
-                Debug.DrawLine(transform.position, c, Color.red);
-                index++;
-            }
-        }
-        if (index == 0)
-            return Vector3.zero;
-
-        separationForce /= agents.Count - 1;
-        separationForce = separationForce.normalized * maxSpeed - velocity;
-        return separationForce;
+        agents.ForEach(e => calcForce += 15f < Vector3.Distance(transform.position, e) ? Vector3.zero : CalculateForce(transform, e));
+    
+        calcForce /= agents.Count - 1;
+        calcForce = calcForce.normalized * maxSpeed - velocity;
+        return calcForce;
     }
 }

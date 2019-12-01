@@ -1,61 +1,54 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class AdvertiserBehaviour : MonoBehaviour {
 
-    public struct BehaviorForce {
-        public float Weight { get; set; }
-        public Vector3 Force { get; set; }
-    }
-
     public GameObject flyerPrefab;
 
     private List<GameObject> flyerInstances;
+    private List<BehaviorForce> forces;
+
     private ShopperBehavior shopperBehavior;
 
     public float obstacleDistance = 8f;
     public float magnitude;
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
-    public float maxAvoidForce = 10.0f;
 
     public float observationDist = 25.0f;
     public float pitchDist = 5.0f;
     public float advertiseRate = 5f;
     public float advertiseProb = 0.9f;
 
-    private Vector3 wanderForce;
-    private Vector3 velocity;
-    private Transform target;
-    private Rigidbody rb;
-
-    private List<BehaviorForce> forces = new List<BehaviorForce>();
-    private TPSpawn tp;
-    private Chair chair;
-
     public bool traversing = false;
     public bool shopping = false;
 
-    private float time = 0.0f;
-    private float chaseTime = 0.0f;
-    private float pitchTime = 0.0f;
+    public int numOfSales = 0;
+
+    private Vector3 wanderForce;
+    private Vector3 velocity;
+    private Transform target;
+    private Rigidbody rb;   
+    private ObjectController objectController;
 
     private bool flyeredSuccess;
-    public int numOfSales = 0;
+    private float time = 0.0f;
+    private float chaseTime = 0.0f;
+    private float pitchTime = 0.0f;    
+    
 
     void Start() {
         velocity = Vector3.zero;
         flyerInstances = new List<GameObject>();
-        tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
+        objectController = GameObject.FindGameObjectWithTag("TP").GetComponent<ObjectController>();
         rb = GetComponent<Rigidbody>();
+        forces = new List<BehaviorForce>();
     }
 
-    // Update is called once per frame
     void Update() {
         
         DropFlyer();
-        if (flyeredSuccess && target != null && shopperBehavior.flyerAttract) {
+        if (flyeredSuccess && target != null && shopperBehavior.isFlyered) {
             chaseTime += Time.deltaTime;
             Debug.DrawLine(transform.position, target.position);
             if (chaseTime <= 4f) {
@@ -99,7 +92,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
         GameObject[] shoppers = GameObject.FindGameObjectsWithTag("Shopper");
         int index = 0;
         for (index = 0; index < shoppers.Length; index++) {
-            bool flyerAttract = shoppers[index].GetComponent<ShopperBehavior>().flyerAttract;
+            bool flyerAttract = shoppers[index].GetComponent<ShopperBehavior>().isFlyered;
             if (flyerAttract) {
                 if (Vector3.Distance(shoppers[index].transform.position, transform.position) < observationDist) {
                     shopperBehavior = shoppers[index].GetComponent<ShopperBehavior>();
@@ -154,29 +147,23 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     void Move() {
         float totalWeight = 0;
-        foreach (BehaviorForce force in forces) {
-            totalWeight += force.Weight;
-        }
+        Vector3 steering = Vector3.zero;
 
-        Vector3 appliedForce = Vector3.zero;
+        forces.ForEach(e => totalWeight += e.Weight);
+        forces.ForEach(e => steering += e.Force * (e.Weight / totalWeight));
 
-        foreach (BehaviorForce force in forces) {
-            Vector3 apply = force.Force;
-            apply *= force.Weight / totalWeight;
-            appliedForce += apply;
-        }
+        steering = Vector3.ClampMagnitude(steering, maxForce);
 
-        appliedForce = Vector3.ClampMagnitude(appliedForce, maxForce);
-
-        velocity += appliedForce * Time.deltaTime;
+        velocity += steering * Time.deltaTime;
         velocity.y = 0;
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
 
         if (velocity != Vector3.zero)
             transform.forward = velocity.normalized;
 
+        //Fixing the Bouncing Issue:
         magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
-        if (magnitude > 25f) {
+        if (magnitude > 20f) {
             rb.velocity = velocity;
             rb.angularVelocity = velocity;
         }
@@ -184,15 +171,14 @@ public class AdvertiserBehaviour : MonoBehaviour {
         transform.position += velocity * Time.deltaTime;
         forces.Clear();
         Debug.DrawRay(transform.position, transform.forward * 5);
-
     }
 
     private void CollisionForce() {
 
-        Vector3 calcForce = Collision.CollisionWithWall(tp.shopWallPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed, -1)
-            + Collision.CollisionWithPlanter(tp.planterPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithTable(tp.tablePosition, this.transform, obstacleDistance, maxSpeed, -1);
+        Vector3 calcForce = Collision.CollisionWithWall(objectController.shopWallPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithWall(objectController.wallPosition, this.transform, obstacleDistance, maxSpeed, -1)
+            + Collision.CollisionWithPlanter(objectController.planterPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithTable(objectController.tablePosition, this.transform, obstacleDistance, maxSpeed, -1);
 
         if (calcForce.magnitude > 0)
             AddForce(2.0f, calcForce);
@@ -205,7 +191,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
             agents.Add(g.transform.position);
         }
         foreach (GameObject g in GameObject.FindGameObjectsWithTag("Shopper")) {
-            if (g.GetComponent<ShopperBehavior>().flyerAttract)
+            if (g.GetComponent<ShopperBehavior>().isFlyered)
                 continue;
             agents.Add(g.transform.position);
         }

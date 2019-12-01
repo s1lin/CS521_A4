@@ -4,68 +4,67 @@ using UnityEngine;
 
 public class ShopperBehavior : MonoBehaviour {
 
-    public struct BehaviorForce {
-        public float Weight { get; set; }
-        public Vector3 Force { get; set; }
-    }
-
     //flyer:
     public Material flyered;
     public Material notFlyered;
-    private GameObject flyer;
-    public bool flyerAttract = false;
+
+    public bool isFlyered = false;
 
     public float obstacleDistance = 8f;
 
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
+    public float magnitude;
 
     public Vector3 velocity;
-    public float magnitude;
-    private Vector3 target;
+
+    private List<Vector3> agents;
     private List<GameObject> flyers;
-    public List<Vector3> agents;
-    private List<BehaviorForce> forces = new List<BehaviorForce>();
-    private TPSpawn tp;
-    private Chair chair;
+    private List<BehaviorForce> forces;
+
+    private Vector3 target;
+    private GameObject flyer;
     private Rigidbody rb;
+
+    private ObjectController objectController;
+    private Chair chair;
+
     private int shopVisited;
 
     public bool traversing = false;
     public bool shopping = false;
 
-    public float shopTime = 0.0f;
-    public float sitTime = 0.0f;
-    public float flyerTime = 0.0f;
-    public Vector3 caclForce;
-    public float caclForceMagnitude;
-    
+    private float shopTime = 0.0f;
+    private float sitTime = 0.0f;
+    private float flyerTime = 0.0f;
 
     void Start() {
-        tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
+
+        objectController = GameObject.FindGameObjectWithTag("TP").GetComponent<ObjectController>();
+        target = new Vector3(99f, 0, Random.Range(-15f, 15f));
+        forces = new List<BehaviorForce>();
+        rb = GetComponent<Rigidbody>();
 
         velocity = Vector3.zero;
-        rb = GetComponent<Rigidbody>();
-        target = new Vector3(99f, 0, Random.Range(-15f, 15f));
-        
+
         float action = Random.value;
         traversing = action >= 0.5f;
         shopping = action < 0.5f;
         if (shopping) {
             shopVisited = Random.Range(0, 16);
-            target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;           
+            target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;
         }
     }
-    public void Reset() {        
+    public void Reset() {
         flyerTime = 0;
-        flyerAttract = false;
+        isFlyered = false;
         velocity = Vector3.zero;
         transform.GetComponent<Renderer>().material = notFlyered;
     }
 
     void Update() {
         Debug.DrawLine(transform.position, target);
-        if (flyerAttract && flyerTime < 2.0f) {
+        if (isFlyered && flyerTime < 2.0f) {
             velocity = Vector3.zero;
             transform.GetComponent<Renderer>().material = flyered;
             if (flyer != null) {
@@ -73,18 +72,20 @@ public class ShopperBehavior : MonoBehaviour {
                 flyers.Remove(flyer);
                 Destroy(flyer);
             }
+            //Flyered, Wait 2s;
             if (flyerTime < 2.0f) {
                 flyerTime += Time.deltaTime;
-            } else {
-                flyerTime = 0;
-                //flyerAttract = false;
             }
+        } else if (flyerTime >= 2.0f) {
+            flyerTime = 0;
+            isFlyered = false;
         } else {
-            if (!flyerAttract) {
-                flyerAttract = CollisionWithFlyer();
+
+            if (!isFlyered) {
+                isFlyered = CollisionWithFlyer();
             }
 
-            if (traversing) {                
+            if (traversing) {
                 Seek();
                 CollisionAvoidance(-1, -1);
                 Move();
@@ -100,7 +101,7 @@ public class ShopperBehavior : MonoBehaviour {
                     Move();
                 } else {
                     if (chair == null) {
-                        chair = tp.GetEmptyChair();
+                        chair = objectController.GetEmptyChair();
                         target = chair.transform.position;
                         velocity = Vector3.zero;
                         forces.Clear();
@@ -108,8 +109,8 @@ public class ShopperBehavior : MonoBehaviour {
                     //Inside Shop, Wait 1s;
                     if (shopTime <= 1.0f)
                         shopTime += Time.deltaTime;
-                    else {                          
-                        if (Vector3.Distance(target, transform.position) > 4f) {                            
+                    else {
+                        if (Vector3.Distance(target, transform.position) > 4f) {
                             Seek();
                             CollisionAvoidance(chair.parent, shopVisited);
                             Move();
@@ -120,16 +121,16 @@ public class ShopperBehavior : MonoBehaviour {
                             forces.Clear();
                             if (sitTime < 3.0f) {
                                 sitTime += Time.deltaTime;
-                            } else {                                
+                            } else {
                                 target = new Vector3(99f, 0, Random.Range(-15f, 15f));
                                 traversing = true;
                                 shopping = false;
                                 Seek();
                                 CollisionAvoidance(chair.parent, -1);
                                 Move();
-                                tp.ChairReset(chair);
+                                objectController.ChairReset(chair);
                             }
-                        }                        
+                        }
                     }
                 }
             }
@@ -141,7 +142,7 @@ public class ShopperBehavior : MonoBehaviour {
         foreach (GameObject g in GameObject.FindGameObjectsWithTag("Flyer")) {
             flyers.Add(g);
         }
-               
+
         if (flyers.Count == 0)
             return false;
 
@@ -151,11 +152,11 @@ public class ShopperBehavior : MonoBehaviour {
     }
 
     void CollisionAvoidance(int tableNum, int shopVisited) {
-        Vector3 calcForce = Collision.CollisionWithWall(tp.wallPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithWall(tp.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited)
-            + Collision.CollisionWithChair(tp.chairs, this.transform, obstacleDistance, maxSpeed, tableNum)
-            + Collision.CollisionWithPlanter(tp.planterPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithTable(tp.tablePosition, this.transform, obstacleDistance, maxSpeed, tableNum);
+        Vector3 calcForce = Collision.CollisionWithWall(objectController.wallPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithWall(objectController.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited)
+            + Collision.CollisionWithChair(objectController.chairs, this.transform, obstacleDistance, maxSpeed, tableNum)
+            + Collision.CollisionWithPlanter(objectController.planterPosition, this.transform, obstacleDistance, maxSpeed)
+            + Collision.CollisionWithTable(objectController.tablePosition, this.transform, obstacleDistance, maxSpeed, tableNum);
 
         if (calcForce.magnitude > 0)
             AddForce(2.0f, calcForce);
@@ -182,31 +183,23 @@ public class ShopperBehavior : MonoBehaviour {
 
     void Move() {
         float totalWeight = 0;
+        Vector3 steering = Vector3.zero;
 
-        foreach (BehaviorForce force in forces) {
-            totalWeight += force.Weight;
-        }
+        forces.ForEach(e => totalWeight += e.Weight);
+        forces.ForEach(e => steering += e.Force * (e.Weight / totalWeight));
 
-        Vector3 appliedForce = Vector3.zero;
+        steering = Vector3.ClampMagnitude(steering, maxForce);
 
-        foreach (BehaviorForce force in forces) {
-            Vector3 apply = force.Force;
-            apply *= force.Weight / totalWeight;
-            appliedForce += apply;
-        }
-
-        appliedForce = Vector3.ClampMagnitude(appliedForce, maxForce);
-        caclForce = appliedForce;
-        caclForceMagnitude = caclForce.magnitude;
-        velocity += appliedForce * Time.deltaTime;
+        velocity += steering * Time.deltaTime;
         velocity.y = 0;
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
 
         if (velocity != Vector3.zero)
             transform.forward = velocity.normalized;
-        
+
+        //Fixing the Bouncing Issue:
         magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
-        if (magnitude > 25f) {
+        if (magnitude > 20f) {
             rb.velocity = velocity;
             rb.angularVelocity = velocity;
         }
@@ -215,10 +208,9 @@ public class ShopperBehavior : MonoBehaviour {
         forces.Clear();
         Debug.DrawRay(transform.position, transform.forward * 5);
     }
-        
 
     public void AddForce(float weight, Vector3 force) {
         forces.Add(new BehaviorForce() { Weight = weight, Force = force });
-    }  
+    }
 
 }

@@ -1,12 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class TPSpawn : MonoBehaviour {
+public class ObjectController : MonoBehaviour {
 
     public GameObject tablePrefab;
     public GameObject planterPrefab;
 
+    //Different Material For Chair
     public Material assigned;
     public Material notAssigned;
 
@@ -28,7 +28,7 @@ public class TPSpawn : MonoBehaviour {
 
         wallPosition = new List<Vector3>();
         GameObject[] walls = GameObject.FindGameObjectsWithTag("Wall");
-        foreach(GameObject g in walls) {
+        foreach (GameObject g in walls) {
             wallPosition.Add(g.transform.position);
         }
 
@@ -47,7 +47,7 @@ public class TPSpawn : MonoBehaviour {
         for (int i = 0; i < numOfTable; i++) {
             while (tablePosition.Find(e => Vector3.Distance(e, pos) < 30f) != new Vector3()) {
                 pos = new Vector3(Random.Range(-50f, 70f), 0, Random.Range(-15f, 15f));
-  
+
             }
             tablePosition.Add(pos);
         }
@@ -99,24 +99,9 @@ public class TPSpawn : MonoBehaviour {
         chairs[chairIndex].transform.GetComponent<Renderer>().material = assigned;
         return chairs[chairIndex];
     }
-    
+
     public void ChairReset(Chair chair) {
         chair.isAssigned = false;
         chair.transform.GetComponent<Renderer>().material = notAssigned;
     }
 }
-public class Chair {
-    public Transform transform;
-    public int index;
-    public int parent;
-    public bool isAssigned;
-
-    public Chair(Transform t, int index, int parent, bool isAssigned) {
-        transform = t;
-        this.index = index;
-        this.parent = parent;
-        this.isAssigned = isAssigned;
-    }
-
-}
-
