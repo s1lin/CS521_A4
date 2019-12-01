@@ -120,7 +120,7 @@ public class Collision : MonoBehaviour {
             if (i == tableNum)
                 continue;
             float obRadius = 10f;
-            float agentRadius = 8f;
+            float agentRadius = 10f;
 
             Vector3 vecToCenter = tables[i] - transform.position;
             vecToCenter.y = 0;

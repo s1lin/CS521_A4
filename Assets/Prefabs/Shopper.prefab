@@ -209,9 +209,7 @@ MonoBehaviour:
   flyerAttract: 0
   obstacleDistance: 5
   maxSpeed: 8
-  maxForce: 8
-  maxSeeAhead: 8
-  maxAvoidForce: 8
+  maxForce: 10
   velocity: {x: 0, y: 0, z: 0}
   magnitude: 0
   agents: []

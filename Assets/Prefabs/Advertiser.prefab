@@ -114,10 +114,11 @@ MonoBehaviour:
   flyerPrefab: {fileID: 3571121565967228776, guid: 337f64be638fccb4ab3ccccef2e08ba7,
     type: 3}
   obstacleDistance: 5
-  maxSpeed: 10
-  maxForce: 8
-  maxAvoidForce: 8
-  observationDist: 8
+  magnitude: 0
+  maxSpeed: 8
+  maxForce: 10
+  maxAvoidForce: 10
+  observationDist: 10
   pitchDist: 5
   advertiseRate: 5
   advertiseProb: 0.9

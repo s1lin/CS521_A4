@@ -15,7 +15,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
     private ShopperBehavior shopperBehavior;
 
     public float obstacleDistance = 8f;
-
+    public float magnitude;
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
     public float maxAvoidForce = 10.0f;
@@ -28,8 +28,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
     private Vector3 wanderForce;
     private Vector3 velocity;
     private Transform target;
-    private List<Vector3> path;
-    private List<Vector3> obstacles;
+    private Rigidbody rb;
 
     private List<BehaviorForce> forces = new List<BehaviorForce>();
     private TPSpawn tp;
@@ -49,8 +48,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
         velocity = Vector3.zero;
         flyerInstances = new List<GameObject>();
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
-        obstacles = tp.planterPosition;
-        obstacles.AddRange(tp.tablePosition);
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -176,6 +174,13 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
         if (velocity != Vector3.zero)
             transform.forward = velocity.normalized;
+
+        magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
+        if (magnitude > 25f) {
+            rb.velocity = velocity;
+            rb.angularVelocity = velocity;
+        }
+
         transform.position += velocity * Time.deltaTime;
         forces.Clear();
         Debug.DrawRay(transform.position, transform.forward * 5);

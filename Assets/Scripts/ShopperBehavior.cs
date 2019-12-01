@@ -19,22 +19,16 @@ public class ShopperBehavior : MonoBehaviour {
 
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
-    public float maxSeeAhead = 20f;
-    public float maxAvoidForce = 10.0f;
 
     public Vector3 velocity;
     public float magnitude;
     private Vector3 target;
-    private List<Vector3> tables;
-    private List<Vector3> planters;
     private List<GameObject> flyers;
     public List<Vector3> agents;
     private List<BehaviorForce> forces = new List<BehaviorForce>();
     private TPSpawn tp;
-    private ShopperController sp;
-    private AdvertiserController ap;
     private Chair chair;
-    private Rigidbody rigidbody;
+    private Rigidbody rb;
     private int shopVisited;
 
     public bool traversing = false;
@@ -49,16 +43,11 @@ public class ShopperBehavior : MonoBehaviour {
 
     void Start() {
         tp = GameObject.FindGameObjectWithTag("TP").GetComponent<TPSpawn>();
-        ap = GameObject.FindGameObjectWithTag("AP").GetComponent<AdvertiserController>();
-        sp = GameObject.FindGameObjectWithTag("SP").GetComponent<ShopperController>();
 
         velocity = Vector3.zero;
-        rigidbody = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         target = new Vector3(99f, 0, Random.Range(-15f, 15f));
         
-        planters = tp.planterPosition;
-        tables = tp.tablePosition;
-
         float action = Random.value;
         traversing = action >= 0.5f;
         shopping = action < 0.5f;
@@ -215,14 +204,11 @@ public class ShopperBehavior : MonoBehaviour {
 
         if (velocity != Vector3.zero)
             transform.forward = velocity.normalized;
-        if (magnitude > 14) {
-            velocity = Vector3.zero;
-        }
         
-        magnitude = rigidbody.GetRelativePointVelocity(transform.position).magnitude;
+        magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
         if (magnitude > 25f) {
-            rigidbody.velocity = velocity;
-            rigidbody.angularVelocity = velocity;
+            rb.velocity = velocity;
+            rb.angularVelocity = velocity;
         }
 
         transform.position += velocity * Time.deltaTime;
