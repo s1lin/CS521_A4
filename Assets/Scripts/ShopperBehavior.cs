@@ -63,7 +63,7 @@ public class ShopperBehavior : MonoBehaviour {
     }
 
     void Update() {
-        Debug.DrawLine(transform.position, target);
+        Debug.DrawLine(transform.position, target, Color.green);
         if (isFlyered && flyerTime < 2.0f) {
             velocity = Vector3.zero;
             transform.GetComponent<Renderer>().material = flyered;
@@ -86,12 +86,14 @@ public class ShopperBehavior : MonoBehaviour {
             }
 
             if (traversing) {
-                Seek();
-                CollisionAvoidance(-1, -1);
-                Move();
+                Seek();              
                 if (chair != null) {
                     chair.transform.GetComponent<CapsuleCollider>().enabled = true;
+                    CollisionAvoidance(chair.parent, -1);
+                } else {
+                    CollisionAvoidance(-1, -1);
                 }
+                Move();
             }
 
             if (shopping) {
@@ -152,14 +154,25 @@ public class ShopperBehavior : MonoBehaviour {
     }
 
     void CollisionAvoidance(int tableNum, int shopVisited) {
-        Vector3 calcForce = Collision.CollisionWithWall(objectController.wallPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithWall(objectController.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited)
-            + Collision.CollisionWithChair(objectController.chairs, this.transform, obstacleDistance, maxSpeed, tableNum)
-            + Collision.CollisionWithPlanter(objectController.planterPosition, this.transform, obstacleDistance, maxSpeed)
-            + Collision.CollisionWithTable(objectController.tablePosition, this.transform, obstacleDistance, maxSpeed, tableNum);
-
+        Vector3 calcForce = Collision.CollisionWithWall(objectController.wallPosition, this.transform, obstacleDistance, maxSpeed);
         if (calcForce.magnitude > 0)
             AddForce(2.0f, calcForce);
+
+        calcForce = Collision.CollisionWithWall(objectController.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited);
+        if (calcForce.magnitude > 0)
+            AddForce(2.0f, calcForce);
+
+        calcForce = Collision.CollisionWithChair(objectController.chairs, this.transform, obstacleDistance, maxSpeed, tableNum);
+        if (calcForce.magnitude > 0)
+            AddForce(2.0f, calcForce);
+
+        calcForce = Collision.CollisionWithPlanter(objectController.planterPosition, this.transform, obstacleDistance, maxSpeed);
+        if (calcForce.magnitude > 0)
+            AddForce(2.0f, calcForce);
+
+        calcForce = Collision.CollisionWithTable(objectController.tablePosition, this.transform, obstacleDistance, maxSpeed, tableNum);
+        if (calcForce.magnitude > 0)
+            AddForce(3.0f, calcForce);
 
         agents = new List<Vector3>();
 
@@ -171,7 +184,7 @@ public class ShopperBehavior : MonoBehaviour {
 
         calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
         if (calcForce.magnitude > 0)
-            AddForce(0.5f, calcForce);
+            AddForce(1.0f, calcForce);
     }
 
     void Seek() {

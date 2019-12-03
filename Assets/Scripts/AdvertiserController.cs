@@ -1,12 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class AdvertiserController: MonoBehaviour {
+public class AdvertiserController : MonoBehaviour {
 
-    public int spawnRate;
-    public int numOfAdvertiser = 1;
+    public Slider numOfAdvertiser;
+    public Text numOfAdvertiserText;
     private int index = 0;
+
+    public Slider observationDistSlider;
+    public Slider pitchDistSlider;
+    public Slider advertiseRateSlider;
+    public Slider advertiseProbSlider;
+    private Text observationDistText;
+    private Text pitchDistText;
+    private Text advertiseRateText;
+    private Text advertiseProbText;
 
     public GameObject advertiserPrefab;
 
@@ -14,17 +24,26 @@ public class AdvertiserController: MonoBehaviour {
 
     void Start() {
         advertiserInstances = new List<GameObject>();
-        StartCoroutine(SpawnAgents());
+        numOfAdvertiserText.text = numOfAdvertiser.value.ToString();
+        observationDistText = observationDistSlider.transform.GetChild(3).gameObject.GetComponent<Text>();
+        pitchDistText = pitchDistSlider.transform.GetChild(3).gameObject.GetComponent<Text>();
+        advertiseRateText = advertiseRateSlider.transform.GetChild(3).gameObject.GetComponent<Text>();
+        advertiseProbText = advertiseProbSlider.transform.GetChild(3).gameObject.GetComponent<Text>();
     }
 
-    IEnumerator SpawnAgents() {
-        for (int i = 0; i < numOfAdvertiser; i++) {
+    void SpawnAgents() {
+        for (int i = advertiserInstances.Count; i < numOfAdvertiser.value; i++) {
             SpawnAdvertiser();
-            yield return new WaitForSeconds(2);
         }
     }
 
     void Update() {
+        observationDistText.text = observationDistSlider.value.ToString();
+        pitchDistText.text = pitchDistSlider.value.ToString();
+        advertiseRateText.text = advertiseRateSlider.value.ToString();
+        advertiseProbText.text = advertiseProbSlider.value.ToString();
+        SpawnAgents();
+        numOfAdvertiserText.text = numOfAdvertiser.value.ToString();
         for (int i = 0; i < advertiserInstances.Count; i++) {
             int sales = advertiserInstances[i].GetComponent<AdvertiserBehaviour>().numOfSales;
             float x = advertiserInstances[i].transform.position.x;

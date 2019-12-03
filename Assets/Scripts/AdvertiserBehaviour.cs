@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AdvertiserBehaviour : MonoBehaviour {
 
@@ -9,16 +10,17 @@ public class AdvertiserBehaviour : MonoBehaviour {
     private List<BehaviorForce> forces;
 
     private ShopperBehavior shopperBehavior;
+    private AdvertiserController advertiserController;
 
     public float obstacleDistance = 8f;
     public float magnitude;
     public float maxSpeed = 20.0f;
     public float maxForce = 20.0f;
 
-    public float observationDist = 25.0f;
-    public float pitchDist = 5.0f;
-    public float advertiseRate = 5f;
-    public float advertiseProb = 0.9f;
+    private float observationDist;
+    private float pitchDist;
+    private float advertiseRate;
+    private float advertiseProb;
 
     public bool traversing = false;
     public bool shopping = false;
@@ -28,33 +30,38 @@ public class AdvertiserBehaviour : MonoBehaviour {
     private Vector3 wanderForce;
     private Vector3 velocity;
     private Transform target;
-    private Rigidbody rb;   
+    private Rigidbody rb;
     private ObjectController objectController;
 
     private bool flyeredSuccess;
     private float time = 0.0f;
     private float chaseTime = 0.0f;
-    private float pitchTime = 0.0f;    
-    
+    private float pitchTime = 0.0f;
+
 
     void Start() {
-        velocity = Vector3.zero;
-        flyerInstances = new List<GameObject>();
-        objectController = GameObject.FindGameObjectWithTag("TP").GetComponent<ObjectController>();
+        velocity = Vector3.zero;            
         rb = GetComponent<Rigidbody>();
         forces = new List<BehaviorForce>();
+        flyerInstances = new List<GameObject>();
+        objectController = GameObject.FindGameObjectWithTag("TP").GetComponent<ObjectController>();
+        advertiserController = GameObject.FindGameObjectWithTag("AP").GetComponent<AdvertiserController>();
     }
 
     void Update() {
-        
+        observationDist = advertiserController.observationDistSlider.value;
+        pitchDist = advertiserController.pitchDistSlider.value;
+        advertiseRate = advertiserController.advertiseRateSlider.value;
+        advertiseProb = advertiserController.advertiseProbSlider.value;
+
         DropFlyer();
         if (flyeredSuccess && target != null && shopperBehavior.isFlyered) {
             chaseTime += Time.deltaTime;
-            Debug.DrawLine(transform.position, target.position);
+            Debug.DrawLine(transform.position, target.position, Color.green);
             if (chaseTime <= 4f) {
                 Seek();
                 Pitch();
-                
+
             } else {
                 flyeredSuccess = false;
                 Wander();

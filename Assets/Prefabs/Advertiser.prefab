@@ -117,11 +117,14 @@ MonoBehaviour:
   magnitude: 0
   maxSpeed: 8
   maxForce: 10
-  maxAvoidForce: 10
-  observationDist: 10
-  pitchDist: 5
-  advertiseRate: 5
-  advertiseProb: 0.9
+  observationDistSlider: {fileID: 7404333205473876791, guid: 978374f13a2eb6f40b5522beb7a4e988,
+    type: 3}
+  pitchDistSlider: {fileID: 2327055581332426759, guid: 6e8fd5d56ddd8834fb7040557d3598be,
+    type: 3}
+  advertiseRateSlider: {fileID: 5155636138671155703, guid: f160d581ee911a2428ac0ab66983d382,
+    type: 3}
+  advertiseProbSlider: {fileID: 2936125293757083108, guid: ca4834c996288a245b4a8cef78100a88,
+    type: 3}
   traversing: 0
   shopping: 0
   numOfSales: 0

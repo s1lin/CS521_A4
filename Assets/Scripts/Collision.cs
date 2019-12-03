@@ -17,7 +17,7 @@ public class Collision : MonoBehaviour {
             return Vector3.zero;
 
         //is it moving towards:
-        if (zDirect < 0)
+        if (zDirect < 0 || Mathf.Abs(xDirect) > agentRadius + obstacleRadius)
             return Vector3.zero;
 
         Debug.DrawLine(transform.position, obstaclePosition, Color.red);
@@ -63,7 +63,7 @@ public class Collision : MonoBehaviour {
     public static Vector3 CollisionWithTable(List<Vector3> tables, Transform transform, float obstacleDistance, float maxSpeed, int tableNum) {
         Vector3 calcForce = Vector3.zero;
 
-        float obstacleRadius = 5f;
+        float obstacleRadius = 10f;
 
         for (int i = 0; i < tables.Count; i++) {
             if (i != tableNum) {
@@ -88,7 +88,7 @@ public class Collision : MonoBehaviour {
 
         Vector3 calcForce = Vector3.zero;
 
-        agents.ForEach(e => calcForce += 15f < Vector3.Distance(transform.position, e) ? Vector3.zero : CalculateForce(transform, e));
+        agents.ForEach(e => calcForce += 13f < Vector3.Distance(transform.position, e) ? Vector3.zero : CalculateForce(transform, e));
     
         calcForce /= agents.Count - 1;
         calcForce = calcForce.normalized * maxSpeed - velocity;
