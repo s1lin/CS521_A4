@@ -54,38 +54,39 @@ public class AdvertiserBehaviour : MonoBehaviour {
         advertiseRate = advertiserController.advertiseRateSlider.value;
         advertiseProb = advertiserController.advertiseProbSlider.value;
 
-        DropFlyer();
-        if (flyeredSuccess && target != null && shopperBehavior.isFlyered) {
-            chaseTime += Time.deltaTime;
+       
+        if (flyeredSuccess || target != null && shopperBehavior.isFlyered) {            
             Debug.DrawLine(transform.position, target.position, Color.green);
-            if (chaseTime <= 4f) {
+            if (chaseTime <= 4.0f) {
                 Seek();
-                Pitch();
-
+                if (Vector3.Distance(target.position, transform.position) <= pitchDist) {
+                    pitchTime += Time.deltaTime;
+                    if (pitchTime >= 5.0f) {
+                        numOfSales++;
+                        transform.GetComponentInChildren<TextMesh>().text = numOfSales.ToString();
+                        flyeredSuccess = false;
+                        shopperBehavior.Reset();
+                        pitchTime = 0;
+                    }
+                }
+                chaseTime += Time.deltaTime;
             } else {
-                flyeredSuccess = false;
                 Wander();
+                flyeredSuccess = false;                
                 chaseTime = 0f;
+                pitchTime = 0f;
+                target = null;
+               
             }
         } else {
+            DropFlyer();
             Wander();
             flyeredSuccess = findFlyeredShopper();
         }
         CollisionForce();
         Move();
     }
-    void Pitch() {
-        if (Vector3.Distance(target.position, transform.position) <= pitchDist) {
-            pitchTime += Time.deltaTime;
-            if (pitchTime >= 4.0f) {
-                numOfSales++;
-                transform.GetComponentInChildren<TextMesh>().text = numOfSales.ToString();
-                flyeredSuccess = false;
-                shopperBehavior.Reset();
-                pitchTime = 0;
-            }
-        }
-    }
+
     void DropFlyer() {
         time += Time.deltaTime;
         if (Random.value < advertiseProb && time >= advertiseRate) {

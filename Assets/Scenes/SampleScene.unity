@@ -1444,7 +1444,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 0.2
 --- !u!222 &248817416
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2805,12 +2805,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7bcdc4d0068fea4299497c79cece52b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tablePrefab: {fileID: 1597490798414769624, guid: da604348d98edac46a3df6c46d920ef8,
-    type: 3}
   planterPrefab: {fileID: 3571121565967228776, guid: 514df0b9f60d77746a6275498dd9e752,
     type: 3}
   assigned: {fileID: 2100000, guid: 6450edc0ac8ed9a4994fc11e4a0a202a, type: 2}
   notAssigned: {fileID: 2100000, guid: bde6e2cc651ad6549b453f5a972bbbca, type: 2}
+  tablePrefabs:
+  - {fileID: 1597490798414769624, guid: 6a14a0c5a182aa8458a7871bb2e8bf7e, type: 3}
+  - {fileID: 1597490798414769624, guid: f71b203eee3497e41a5a8c68b9286c65, type: 3}
+  - {fileID: 1597490798414769624, guid: 24e7f36c9fd598f419bfbee4ec1afbc4, type: 3}
+  - {fileID: 1597490798414769624, guid: 1044a2eac2202a347a000cbdef6e9cf4, type: 3}
+  - {fileID: 1597490798414769624, guid: da604348d98edac46a3df6c46d920ef8, type: 3}
   tablePosition: []
   planterPosition: []
   wallPosition: []
@@ -4926,8 +4930,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 158, y: 340}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: 35, y: 365}
+  m_SizeDelta: {x: 156.2, y: 105.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1076772438
 MonoBehaviour:
@@ -4949,11 +4953,11 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 30
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 40
+    m_MinSize: 0
+    m_MaxSize: 50
     m_Alignment: 1
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -7466,7 +7470,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 0.2
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -7538,7 +7542,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 5
 --- !u!222 &1529569468
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8505,7 +8509,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 5
 --- !u!222 &1776914333
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8558,11 +8562,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numOfAdvertiser: {fileID: 110914251}
-  numOfAdvertiserText: {fileID: 2035316218}
   observationDistSlider: {fileID: 924860587}
   pitchDistSlider: {fileID: 1170465412}
   advertiseRateSlider: {fileID: 1359935698}
   advertiseProbSlider: {fileID: 1500878351}
+  numOfAdvertiserText: {fileID: 2035316218}
   advertiserPrefab: {fileID: 1025655117217532, guid: 714c9ddcb11815345aa73a863653ab10,
     type: 3}
   advertiserInstances: []

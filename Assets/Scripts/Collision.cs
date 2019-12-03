@@ -88,7 +88,7 @@ public class Collision : MonoBehaviour {
 
         Vector3 calcForce = Vector3.zero;
 
-        agents.ForEach(e => calcForce += 13f < Vector3.Distance(transform.position, e) ? Vector3.zero : CalculateForce(transform, e));
+        agents.ForEach(e => calcForce += 10f < Vector3.Distance(transform.position, e) ? Vector3.zero : CalculateForce(transform, e));
     
         calcForce /= agents.Count - 1;
         calcForce = calcForce.normalized * maxSpeed - velocity;

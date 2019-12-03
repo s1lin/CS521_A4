@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class ObjectController : MonoBehaviour {
 
-    public GameObject tablePrefab;
     public GameObject planterPrefab;
 
     //Different Material For Chair
@@ -12,6 +11,7 @@ public class ObjectController : MonoBehaviour {
 
     private List<GameObject> tableInstances;
     private List<GameObject> planterInstances;
+    public GameObject[] tablePrefabs;
 
     public List<Vector3> tablePosition;
     public List<Vector3> planterPosition;
@@ -68,10 +68,12 @@ public class ObjectController : MonoBehaviour {
     }
 
     void SpawnTable() {
+
         chairs = new List<Chair>();
         tableInstances = new List<GameObject>();
         for (int i = 0; i < tablePosition.Count; i++) {
-            GameObject table = Instantiate(tablePrefab, transform);
+            int r = Random.Range(0, tablePrefabs.Length);
+            GameObject table = Instantiate(tablePrefabs[r], transform);
             table.transform.position = tablePosition[i];
             tableInstances.Add(table);
             for (int j = 1; j < table.transform.childCount; j++) {

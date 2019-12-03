@@ -1,22 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AdvertiserController : MonoBehaviour {
 
     public Slider numOfAdvertiser;
-    public Text numOfAdvertiserText;
-    private int index = 0;
-
     public Slider observationDistSlider;
     public Slider pitchDistSlider;
     public Slider advertiseRateSlider;
     public Slider advertiseProbSlider;
+
+    public Text numOfAdvertiserText;
+
     private Text observationDistText;
     private Text pitchDistText;
     private Text advertiseRateText;
     private Text advertiseProbText;
+
+    private int index = 0;
 
     public GameObject advertiserPrefab;
 

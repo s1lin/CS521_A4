@@ -79,6 +79,7 @@ public class ShopperBehavior : MonoBehaviour {
         } else if (flyerTime >= 2.0f) {
             flyerTime = 0;
             isFlyered = false;
+            transform.GetComponent<Renderer>().material = notFlyered;
         } else {
 
             if (!isFlyered) {
@@ -188,7 +189,7 @@ public class ShopperBehavior : MonoBehaviour {
     }
 
     void Seek() {
-        var desiredVelocity = target - transform.position;
+        Vector3 desiredVelocity = target - transform.position;
         desiredVelocity = desiredVelocity.normalized * maxSpeed;
         desiredVelocity -= velocity;
         AddForce(1.0f, desiredVelocity);
