@@ -55,12 +55,6 @@ public class ShopperBehavior : MonoBehaviour {
             target = GameObject.FindGameObjectsWithTag("Shop")[shopVisited].transform.position;
         }
     }
-    public void Reset() {
-        flyerTime = 0;
-        isFlyered = false;
-        velocity = Vector3.zero;
-        transform.GetComponent<Renderer>().material = notFlyered;
-    }
 
     void Update() {
         Debug.DrawLine(transform.position, target, Color.green);
@@ -161,7 +155,7 @@ public class ShopperBehavior : MonoBehaviour {
 
         calcForce = Collision.CollisionWithWall(objectController.shopWallPosition, this.transform, obstacleDistance, maxSpeed, shopVisited);
         if (calcForce.magnitude > 0)
-            AddForce(2.0f, calcForce);
+            AddForce(2.5f, calcForce);
 
         calcForce = Collision.CollisionWithChair(objectController.chairs, this.transform, obstacleDistance, maxSpeed, tableNum);
         if (calcForce.magnitude > 0)
@@ -185,7 +179,7 @@ public class ShopperBehavior : MonoBehaviour {
 
         calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
         if (calcForce.magnitude > 0)
-            AddForce(1.0f, calcForce);
+            AddForce(0.2f, calcForce);
     }
 
     void Seek() {
@@ -213,7 +207,7 @@ public class ShopperBehavior : MonoBehaviour {
 
         //Fixing the Bouncing Issue:
         magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
-        if (magnitude > 20f) {
+        if (magnitude > 15f) {
             rb.velocity = velocity;
             rb.angularVelocity = velocity;
         }

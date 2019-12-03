@@ -60,7 +60,7 @@ public class AdvertiserController : MonoBehaviour {
     }
 
     void SpawnAdvertiser() {
-        float zIndex = Random.Range(-15f, 15f);
+        float zIndex = Random.Range(-20f, 15f);
         float xIndex = Random.Range(-90f, -45f);
         Vector3 pos = new Vector3(xIndex, 0, zIndex);
         GameObject advertiser = Instantiate(advertiserPrefab, pos, Quaternion.identity, transform);

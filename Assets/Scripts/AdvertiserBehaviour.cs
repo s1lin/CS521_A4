@@ -53,33 +53,32 @@ public class AdvertiserBehaviour : MonoBehaviour {
         pitchDist = advertiserController.pitchDistSlider.value;
         advertiseRate = advertiserController.advertiseRateSlider.value;
         advertiseProb = advertiserController.advertiseProbSlider.value;
-
-       
-        if (flyeredSuccess || target != null && shopperBehavior.isFlyered) {            
-            Debug.DrawLine(transform.position, target.position, Color.green);
-            if (chaseTime <= 4.0f) {
+               
+        if (flyeredSuccess && target != null) {          
+            if (chaseTime <= 5.0f) {
+                Debug.DrawLine(transform.position, target.position, Color.cyan);
                 Seek();
                 if (Vector3.Distance(target.position, transform.position) <= pitchDist) {
                     pitchTime += Time.deltaTime;
-                    if (pitchTime >= 5.0f) {
+                    if (pitchTime >= 4.0f) {
                         numOfSales++;
                         transform.GetComponentInChildren<TextMesh>().text = numOfSales.ToString();
                         flyeredSuccess = false;
-                        shopperBehavior.Reset();
-                        pitchTime = 0;
+                        pitchTime = 0;                       
+                        target = null;
                     }
-                }
-                chaseTime += Time.deltaTime;
+                } else {
+                    chaseTime += Time.deltaTime;
+                }               
             } else {
                 Wander();
-                flyeredSuccess = false;                
+                flyeredSuccess = false;
+                pitchTime = 0;
                 chaseTime = 0f;
-                pitchTime = 0f;
                 target = null;
-               
+
             }
-        } else {
-            DropFlyer();
+        } else {            
             Wander();
             flyeredSuccess = findFlyeredShopper();
         }
@@ -98,8 +97,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
     bool findFlyeredShopper() {
         GameObject[] shoppers = GameObject.FindGameObjectsWithTag("Shopper");
-        int index = 0;
-        for (index = 0; index < shoppers.Length; index++) {
+        for (int index = 0; index < shoppers.Length; index++) {
             bool flyerAttract = shoppers[index].GetComponent<ShopperBehavior>().isFlyered;
             if (flyerAttract) {
                 if (Vector3.Distance(shoppers[index].transform.position, transform.position) < observationDist) {
@@ -115,42 +113,38 @@ public class AdvertiserBehaviour : MonoBehaviour {
     }
 
     void Seek() {
-        var desiredVelocity = target.transform.position - transform.position;
+        Vector3 desiredVelocity = target.transform.position - transform.position;
         desiredVelocity = desiredVelocity.normalized * maxSpeed;
         desiredVelocity -= velocity;
-        AddForce(1.0f, desiredVelocity);
+        AddForce(2.0f, desiredVelocity);
     }
 
     private void Wander() {
+        DropFlyer();
+        //Give an initial velocity "SORT OF""
         if (transform.position.magnitude > 5f) {
-            var directionToCenter = (new Vector3(-70f, 0, 10f) - transform.position).normalized;
+            Vector3 directionToCenter = (new Vector3(-70f, 0, 15f) - transform.position).normalized;
             wanderForce = velocity.normalized + directionToCenter;
         } else if (Random.value < 0.5f) {
             wanderForce = GetRandomWanderForce();
         }
-        var desiredVelocity = wanderForce;
+        Vector3 desiredVelocity = wanderForce;
         desiredVelocity = desiredVelocity.normalized * maxSpeed;
         desiredVelocity -= velocity;
-        AddForce(1.0f, desiredVelocity);
+        AddForce(2.0f, desiredVelocity);
 
     }
 
     private Vector3 GetRandomWanderForce() {
-        var circleCenter = velocity.normalized;
-        var randomPoint = Random.insideUnitCircle;
+        Vector3 circleCenter = velocity.normalized;
+        Vector3 randomPoint = Random.insideUnitCircle;
 
-        var displacement = new Vector3(randomPoint.x, randomPoint.y) * 8f;
+        Vector3 displacement = new Vector3(randomPoint.x, randomPoint.y) * 10f;
         displacement = Quaternion.LookRotation(velocity) * displacement;
 
-        var wanderForce = circleCenter + displacement;
+        Vector3 wanderForce = circleCenter + displacement;
 
         return wanderForce;
-    }
-
-    public void setAngle(Vector3 vector, float value) {
-        var len = vector.magnitude;
-        vector.x = Mathf.Cos(value) * len;
-        vector.z = Mathf.Sin(value) * len;
     }
 
     void Move() {
@@ -171,7 +165,7 @@ public class AdvertiserBehaviour : MonoBehaviour {
 
         //Fixing the Bouncing Issue:
         magnitude = rb.GetRelativePointVelocity(transform.position).magnitude;
-        if (magnitude > 20f) {
+        if (magnitude > 15f) {
             rb.velocity = velocity;
             rb.angularVelocity = velocity;
         }
@@ -198,15 +192,10 @@ public class AdvertiserBehaviour : MonoBehaviour {
                 continue;
             agents.Add(g.transform.position);
         }
-        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Shopper")) {
-            if (g.GetComponent<ShopperBehavior>().isFlyered)
-                continue;
-            agents.Add(g.transform.position);
-        }
 
         calcForce = Collision.CollisionWithOtherAgent(agents, this.transform, 1f, maxSpeed, velocity);
         if (calcForce.magnitude > 0)
-            AddForce(0.5f, calcForce);
+            AddForce(2.0f, calcForce);
     }
 
     public void AddForce(float weight, Vector3 force) {

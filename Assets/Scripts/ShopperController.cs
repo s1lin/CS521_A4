@@ -29,7 +29,8 @@ public class ShopperController : MonoBehaviour {
     void Update() {
         spawnRateText.text = spawnRate.value.ToString();
         if (!isWait) {
-            StartCoroutine(SpawnAgents());
+            if(spawnRate.value != 0)
+                StartCoroutine(SpawnAgents());
             for (int i = 0; i < shopperInstances.Count; i++) {
                 float x = shopperInstances[i].transform.position.x;
                 float y = shopperInstances[i].transform.position.y;
@@ -38,7 +39,6 @@ public class ShopperController : MonoBehaviour {
                 if (x > 98f || Mathf.Abs(y) > 0.5f || Mathf.Abs(z) > 55f) {
                     Destroy(shopperInstances[i]);
                     shopperInstances.RemoveAt(i);
-                    SpawnShopper();
                 }
             }
         }
